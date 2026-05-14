@@ -36,20 +36,20 @@
         <a href="lwmteacher_index.jsp" target="rightFrame">主页</a>
     </div>
     <div class="menu-item">
-        <i class="fas fa-database"></i>
-        <a href="lwmteacherlist.jsp" target="rightFrame">试题信息</a>
+        <i class="fas fa-calendar-alt"></i>
+        <a href="lwmQueryTeacherCourses" target="rightFrame">我的排课</a>
     </div>
     <div class="menu-item">
-        <i class="fas fa-calendar-alt"></i>
-        <a href="#" target="rightFrame">考试管理</a>
+        <i class="fas fa-database"></i>
+        <a href="lwmQueryQuestion" target="rightFrame">题库管理</a>
+    </div>
+    <div class="menu-item">
+        <i class="fas fa-file-alt"></i>
+        <a href="lwmQueryPaper" target="rightFrame">试卷管理</a>
     </div>
     <div class="menu-item">
         <i class="fas fa-search"></i>
-        <a href="#" target="rightFrame">成绩查询</a>
-    </div>
-    <div class="menu-item">
-        <i class="fas fa-chart-line"></i>
-        <a href="#" target="rightFrame">统计分析</a>
+        <a href="lwmQueryExamRecords" target="rightFrame">考试情况</a>
     </div>
 </div>
 
