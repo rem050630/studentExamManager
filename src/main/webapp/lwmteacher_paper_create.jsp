@@ -59,29 +59,16 @@
             <label>试卷名称</label>
             <input type="text" name="lwmpapername" required placeholder="如：2023级高数期末试卷">
         </div>
-        <div class="inline-group">
-            <div class="form-group">
-                <label>所属科目</label>
-                <select name="lwmsubjectid" id="subjectSelect" required>
-                    <option value="">请选择</option>
-                    <% java.util.Set<Integer> seenSubjs = new java.util.HashSet<>();
-                    for (lwmstudentcourseteacher c : courses) {
-                        if (seenSubjs.add(c.getLwmsubjectid())) { %>
-                        <option value="<%= c.getLwmsubjectid() %>"><%= c.getLwmsubjectname() %></option>
-                    <% } } %>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>分配班级</label>
-                <select name="lwmclassname" required>
-                    <option value="">请选择</option>
-                    <% java.util.Set<String> seenClasses = new java.util.HashSet<>();
-                    for (lwmstudentcourseteacher c : courses) {
-                        if (seenClasses.add(c.getLwmclassname())) { %>
-                        <option value="<%= c.getLwmclassname() %>"><%= c.getLwmclassname() %></option>
-                    <% } } %>
-                </select>
-            </div>
+        <div class="form-group">
+            <label>所属科目</label>
+            <select name="lwmsubjectid" id="subjectSelect" required>
+                <option value="">请选择</option>
+                <% java.util.Set<Integer> seenSubjs = new java.util.HashSet<>();
+                for (lwmstudentcourseteacher c : courses) {
+                    if (seenSubjs.add(c.getLwmsubjectid())) { %>
+                    <option value="<%= c.getLwmsubjectid() %>"><%= c.getLwmsubjectname() %></option>
+                <% } } %>
+            </select>
         </div>
         <div class="inline-group">
             <div class="form-group">
