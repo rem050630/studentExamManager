@@ -1,0 +1,57 @@
+package com.example.lwmexam.action.lwmexam;
+
+import com.example.lwmexam.dao.lwmexam.lwmCourseArrangeDAO;
+import com.example.lwmexam.entity.lwmexam.lwmstudentcourseteacher;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+@WebServlet("/lwmUpdatecourse")
+public class lwmUpdatecourse extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        int id = Integer.parseInt(request.getParameter("id"));
+        lwmCourseArrangeDAO dao = new lwmCourseArrangeDAO();
+        lwmstudentcourseteacher sct = dao.lwmQuerySctById(id);
+
+        request.getSession().setAttribute("sct", sct);
+        response.sendRedirect("lwmupdatecourse.jsp");
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.setCharacterEncoding("utf-8");
+        response.setContentType("text/html;charset=utf-8");
+
+        // 获取参数
+        int lwmsctid = Integer.parseInt(request.getParameter("lwmsctid"));
+        String lwmclassname = request.getParameter("lwmclassname");
+        int lwmsubjectid = Integer.parseInt(request.getParameter("lwmsubjectid"));
+        int lwmteacherid = Integer.parseInt(request.getParameter("lwmteacherid"));
+        String lwmsemester = request.getParameter("lwmsemester");
+
+        // 封装
+        lwmstudentcourseteacher sct = new lwmstudentcourseteacher();
+        sct.setLwmsctid(lwmsctid);
+        sct.setLwmclassname(lwmclassname);
+        sct.setLwmsubjectid(lwmsubjectid);
+        sct.setLwmteacherid(lwmteacherid);
+        sct.setLwmsemester(lwmsemester);
+
+        // 修改
+        lwmCourseArrangeDAO dao = new lwmCourseArrangeDAO();
+        int res = dao.lwmUpdateSct(sct);
+
+        PrintWriter out = response.getWriter();
+        if(res>0){
+            out.println("<script>alert('修改成功');location.href='lwmcourse_xx';</script>");
+        }else{
+            out.println("<script>alert('修改失败');history.back();</script>");
+        }
+    }
+}
