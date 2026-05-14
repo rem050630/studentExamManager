@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="com.example.lwmexam.entity.lwmexam.lwmTeacher" %>
+<%@ page import="com.example.lwmexam.service.lwmexam.MysqlConn" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Date" %>
 <%
@@ -10,6 +11,56 @@
         return;
     }
     String teacherName = teacher.getLwmteachername() != null ? teacher.getLwmteachername() : "老师";
+
+    int questionCount = 0;
+    int paperCount = 0;
+    int ungradedCount = 0;
+    int studentCount = 0;
+
+    MysqlConn db = new MysqlConn();
+    try {
+        // 试题总数（该教师所教科目下的试题）
+        java.sql.ResultSet rs = db.doQuery(
+            "SELECT COUNT(DISTINCT q.lwmquestionid) FROM lwmexamquestion q " +
+            "WHERE q.lwmsubjectid IN (SELECT DISTINCT lwmsubjectid FROM lwmstudentcourseteacher WHERE lwmteacherid = ?)",
+            new Object[]{teacher.getLwmteacherid()});
+        if (rs.next()) questionCount = rs.getInt(1);
+    } catch (Exception e) { e.printStackTrace(); }
+    db.close();
+
+    db = new MysqlConn();
+    try {
+        // 试卷总数
+        java.sql.ResultSet rs = db.doQuery(
+            "SELECT COUNT(*) FROM lwmexampaper WHERE lwmteacherid = ?",
+            new Object[]{teacher.getLwmteacherid()});
+        if (rs.next()) paperCount = rs.getInt(1);
+    } catch (Exception e) { e.printStackTrace(); }
+    db.close();
+
+    db = new MysqlConn();
+    try {
+        // 待批阅试卷（已提交但未评分的考试记录数）
+        java.sql.ResultSet rs = db.doQuery(
+            "SELECT COUNT(*) FROM lwmexamrecord r " +
+            "JOIN lwmexampaper p ON r.lwmpaperid = p.lwmpaperid " +
+            "WHERE p.lwmteacherid = ? AND r.lwmsubmitstatus = 1 " +
+            "AND NOT EXISTS (SELECT 1 FROM lwmexamscore s WHERE s.lwmrecordid = r.lwmrecordid)",
+            new Object[]{teacher.getLwmteacherid()});
+        if (rs.next()) ungradedCount = rs.getInt(1);
+    } catch (Exception e) { e.printStackTrace(); }
+    db.close();
+
+    db = new MysqlConn();
+    try {
+        // 所授学生总数（去重）
+        java.sql.ResultSet rs = db.doQuery(
+            "SELECT COUNT(DISTINCT s.lwmstudentid) FROM lwmstudent s " +
+            "WHERE s.lwmclassname IN (SELECT DISTINCT lwmclassname FROM lwmstudentcourseteacher WHERE lwmteacherid = ?)",
+            new Object[]{teacher.getLwmteacherid()});
+        if (rs.next()) studentCount = rs.getInt(1);
+    } catch (Exception e) { e.printStackTrace(); }
+    db.close();
 %>
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -73,22 +124,22 @@
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-icon"><i class="fas fa-question-circle"></i></div>
-            <div class="stat-number">156</div>
+            <div class="stat-number"><%= questionCount %></div>
             <div class="stat-label">试题总数</div>
         </div>
         <div class="stat-card">
             <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
-            <div class="stat-number">8</div>
-            <div class="stat-label">进行中考试</div>
+            <div class="stat-number"><%= paperCount %></div>
+            <div class="stat-label">试卷总数</div>
         </div>
         <div class="stat-card">
             <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-            <div class="stat-number">23</div>
+            <div class="stat-number"><%= ungradedCount %></div>
             <div class="stat-label">待批阅试卷</div>
         </div>
         <div class="stat-card">
             <div class="stat-icon"><i class="fas fa-users"></i></div>
-            <div class="stat-number">156</div>
+            <div class="stat-number"><%= studentCount %></div>
             <div class="stat-label">所授学生总数</div>
         </div>
     </div>
@@ -96,15 +147,14 @@
     <div class="data-card">
         <div class="card-header">
             <h3><i class="fas fa-clock"></i> 近期考试安排</h3>
-            <button class="btn-primary">查看全部</button>
+            <button class="btn-primary" onclick="parent.rightFrame.location='lwmQueryPaper'">查看全部</button>
         </div>
         <table>
             <thead>
             <tr><th>考试名称</th><th>日期</th><th>班级</th><th>状态</th></tr>
             </thead>
             <tbody>
-            <tr><td>数据库期中考试</td><td>2025-04-15</td><td>计科2101</td><td><span class="badge">即将开始</span></td></tr>
-            <tr><td>数据结构期末考试</td><td>2025-04-20</td><td>软工2102</td><td><span class="badge">组卷中</span></td></tr>
+            <tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:24px;">前往「试卷管理」查看最新考试安排</td></tr>
             </tbody>
         </table>
     </div>
