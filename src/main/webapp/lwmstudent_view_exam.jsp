@@ -3,7 +3,6 @@
 <%@ page import="com.example.lwmexam.entity.lwmexam.lwmStudentAnswer" %>
 <%@ page import="java.util.Arrays" %>
 <%!
-    // Normalize multi-select answer: "A,C,D" → sorted ["A","C","D"]; "ACD" → sorted ["A","C","D"]
     private String[] splitAnswer(String ans) {
         if (ans == null) return new String[0];
         String trimmed = ans.trim();
@@ -29,6 +28,7 @@
     String paperName = (String) request.getAttribute("paperName");
     int status = request.getAttribute("status") != null ? (int) request.getAttribute("status") : 0;
     Integer totalScore = (Integer) request.getAttribute("totalScore");
+    boolean editable = (status == 1);
 %>
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -64,6 +64,10 @@
         .result-partial { background:#fef3c7; color:#d97706; }
         .btn { padding:10px 24px; border-radius:8px; cursor:pointer; border:none; font-size:0.9rem; text-decoration:none; display:inline-block; }
         .btn-secondary { background:#e2e8f0; color:#475569; }
+        .btn-primary { background:#059669; color:white; }
+        .btn-row { display:flex; justify-content:center; margin-top:20px; }
+        .answer-input { width:100%; padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:0.9rem; }
+        .editable-hint { background:#eff6ff; color:#3b82f6; padding:10px 16px; border-radius:8px; margin-bottom:20px; font-size:0.85rem; }
         .empty { text-align:center; padding:40px; color:#94a3b8; }
     </style>
 </head>
@@ -71,7 +75,7 @@
 <div class="container">
     <div class="header">
         <a href="lwmstudent_main.jsp" class="btn btn-secondary" style="padding:8px 18px;font-size:0.85rem;">返回</a>
-        <h2>试卷查看</h2>
+        <h2><%= editable ? "查看 / 修改试卷" : "查看试卷" %></h2>
     </div>
 
     <div class="summary">
@@ -88,27 +92,42 @@
                 <div class="label">总成绩</div>
                 <div class="value" style="color:#16a34a;"><%= totalScore %> 分</div>
             </div>
+        <% } else if (editable) { %>
+            <div class="item">
+                <div class="label">状态</div>
+                <div class="value" style="color:#3b82f6;">待批阅</div>
+            </div>
         <% } %>
     </div>
+
+    <% if (editable) { %>
+        <div class="editable-hint">老师尚未批阅，你可以修改答案。修改后需等待老师重新评分。</div>
+    <% } %>
+
+    <% if (editable) { %>
+        <form method="post" action="lwmUpdateStudentAnswer">
+            <input type="hidden" name="recordId" value="<%= recordId %>">
+    <% } %>
 
     <% if (answers != null && !answers.isEmpty()) {
         for (lwmStudentAnswer a : answers) {
             String studentAns = a.getLwmstudentanswer();
             String correctAns = a.getLwmcorrectanswer();
-            boolean isCorrect;
-            if ("多选题".equals(a.getLwmquestiontype())) {
-                isCorrect = isMultiSelectCorrect(studentAns, correctAns);
-            } else {
-                isCorrect = studentAns != null && correctAns != null && studentAns.trim().equalsIgnoreCase(correctAns.trim());
-            }
             int qScore = a.getLwmquestionscore();
             int maxScore = a.getLwmpaperscore();
-            boolean fullScore = qScore >= maxScore;
-            boolean partialScore = qScore > 0 && qScore < maxScore;
 
-            String borderClass = fullScore ? "correct-bg" : (partialScore ? "partial-bg" : "wrong-bg");
-            String badgeClass = fullScore ? "result-correct" : (partialScore ? "result-partial" : "result-wrong");
-            String badgeText = fullScore ? "正确" : (partialScore ? "部分正确" : "错误");
+            String borderClass = "";
+            if (!editable) {
+                boolean isCorrect;
+                if ("多选题".equals(a.getLwmquestiontype())) {
+                    isCorrect = isMultiSelectCorrect(studentAns, correctAns);
+                } else {
+                    isCorrect = studentAns != null && correctAns != null && studentAns.trim().equalsIgnoreCase(correctAns.trim());
+                }
+                boolean fullScore = qScore >= maxScore;
+                boolean partialScore = qScore > 0 && qScore < maxScore;
+                borderClass = fullScore ? "correct-bg" : (partialScore ? "partial-bg" : "wrong-bg");
+            }
     %>
         <div class="card <%= borderClass %>">
             <div class="q-header">
@@ -116,6 +135,7 @@
                 <span class="q-score">分值 <%= maxScore %> 分</span>
             </div>
             <div class="q-content"><strong>题目：</strong><%= a.getLwmquestioncontent() %></div>
+
             <% if ("单选题".equals(a.getLwmquestiontype()) || "多选题".equals(a.getLwmquestiontype())) { %>
                 <div class="options">
                     <% if (a.getLwmoptiona() != null && !a.getLwmoptiona().isEmpty()) { %><div>A. <%= a.getLwmoptiona() %></div><% } %>
@@ -124,15 +144,32 @@
                     <% if (a.getLwmoptiond() != null && !a.getLwmoptiond().isEmpty()) { %><div>D. <%= a.getLwmoptiond() %></div><% } %>
                 </div>
             <% } %>
+
             <div class="answer-row">
                 <strong>你的答案：</strong>
-                <span class="<%= isCorrect ? "correct" : "wrong" %>"><%= studentAns != null ? studentAns : "(未作答)" %></span>
-                <span class="result-badge <%= badgeClass %>"><%= badgeText %></span>
+                <% if (editable) { %>
+                    <input type="text" name="ans_<%= a.getLwmanswerid() %>" class="answer-input" value="<%= studentAns != null ? studentAns : "" %>" placeholder="输入你的答案">
+                <% } else {
+                    boolean isCorrect;
+                    if ("多选题".equals(a.getLwmquestiontype())) {
+                        isCorrect = isMultiSelectCorrect(studentAns, correctAns);
+                    } else {
+                        isCorrect = studentAns != null && correctAns != null && studentAns.trim().equalsIgnoreCase(correctAns.trim());
+                    }
+                    boolean fullScore = qScore >= maxScore;
+                    boolean partialScore = qScore > 0 && qScore < maxScore;
+                    String badgeClass = fullScore ? "result-correct" : (partialScore ? "result-partial" : "result-wrong");
+                    String badgeText = fullScore ? "正确" : (partialScore ? "部分正确" : "错误");
+                %>
+                    <span class="<%= isCorrect ? "correct" : "wrong" %>"><%= studentAns != null ? studentAns : "(未作答)" %></span>
+                    <span class="result-badge <%= badgeClass %>"><%= badgeText %></span>
+                <% } %>
             </div>
-            <div class="answer-row">
-                <strong>正确答案：</strong><span class="correct"><%= correctAns != null ? correctAns : "--" %></span>
-            </div>
-            <% if (status == 2) { %>
+
+            <% if (!editable) { %>
+                <div class="answer-row">
+                    <strong>正确答案：</strong><span class="correct"><%= correctAns != null ? correctAns : "--" %></span>
+                </div>
                 <div class="answer-row">
                     <strong>得分：</strong><%= qScore %> / <%= maxScore %> 分
                 </div>
@@ -141,6 +178,13 @@
     <% }
     } else { %>
         <div class="card"><p class="empty">暂无答题数据</p></div>
+    <% } %>
+
+    <% if (editable) { %>
+            <div class="btn-row">
+                <button type="submit" class="btn btn-primary">保存修改</button>
+            </div>
+        </form>
     <% } %>
 
 </div>
