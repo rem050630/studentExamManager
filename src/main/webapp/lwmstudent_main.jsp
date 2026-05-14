@@ -187,6 +187,9 @@
                             <td>
                                 <% if (status >= 1) { %>
                                     <a href="lwmViewExam?recordId=<%= r.get("recordId") %>" style="color:#3b82f6;text-decoration:none;font-weight:500;">查看</a>
+                                    <% if (status != 2) { %>
+                                        <a href="lwmDeleteExamRecord?recordId=<%= r.get("recordId") %>" style="color:#ef4444;text-decoration:none;font-weight:500;margin-left:8px;" onclick="return confirm('确定删除该考试记录？删除后数据无法恢复。')">删除</a>
+                                    <% } %>
                                 <% } else { %>
                                     <span style="color:#94a3b8;">--</span>
                                 <% } %>

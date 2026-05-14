@@ -93,6 +93,7 @@
                             <% } else { %>
                                 <span class="btn btn-disabled">待提交</span>
                             <% } %>
+                            <a href="lwmDeleteExamRecord?recordId=<%= r.get("lwmrecordid") %>" class="btn btn-disabled" style="color:#ef4444;" onclick="return confirm('确定删除该考试记录？删除后数据无法恢复。')">删除</a>
                         </td>
                     </tr>
                 <% }
