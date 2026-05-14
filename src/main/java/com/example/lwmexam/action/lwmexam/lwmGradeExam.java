@@ -1,0 +1,81 @@
+package com.example.lwmexam.action.lwmexam;
+
+import com.example.lwmexam.dao.lwmexam.lwmpaperDAO;
+import com.example.lwmexam.dao.lwmexam.lwmscoreDAO;
+import com.example.lwmexam.entity.lwmexam.lwmExamPaper;
+import com.example.lwmexam.entity.lwmexam.lwmStudentAnswer;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
+@WebServlet("/lwmGradeExam")
+public class lwmGradeExam extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        if (session.getAttribute("teacher") == null) {
+            response.sendRedirect("login.jsp"); return;
+        }
+
+        int recordId = Integer.parseInt(request.getParameter("recordId"));
+        lwmscoreDAO dao = new lwmscoreDAO();
+        List<lwmStudentAnswer> answers = dao.lwmQueryAnswersByRecord(recordId);
+
+        // Auto-grade objective questions on first load (scores are 0)
+        boolean needAutoScore = true;
+        for (lwmStudentAnswer a : answers) {
+            if (a.getLwmquestionscore() > 0) { needAutoScore = false; break; }
+        }
+
+        // Get paper info for per-question max scores
+        if (!answers.isEmpty()) {
+            lwmpaperDAO pDao = new lwmpaperDAO();
+            lwmExamPaper paper = pDao.lwmQueryPaperById(answers.get(0).getLwmpaperid());
+            if (paper != null) {
+                for (lwmStudentAnswer a : answers) {
+                    String type = a.getLwmquestiontype();
+                    if ("单选题".equals(type)) a.setLwmpaperscore(paper.getLwmdanxscore());
+                    else if ("多选题".equals(type)) a.setLwmpaperscore(paper.getLwmduoxscore());
+                    else if ("判断题".equals(type)) a.setLwmpaperscore(paper.getLwmpdscore());
+                    else if ("简答题".equals(type)) a.setLwmpaperscore(paper.getLwmjdscore());
+                }
+            }
+        }
+
+        if (needAutoScore) {
+            for (lwmStudentAnswer a : answers) {
+                int autoScore = autoGrade(a);
+                a.setLwmquestionscore(autoScore);
+            }
+        }
+
+        request.setAttribute("answers", answers);
+        request.setAttribute("recordId", recordId);
+        request.getRequestDispatcher("lwmteacher_grading.jsp").forward(request, response);
+    }
+
+    private int autoGrade(lwmStudentAnswer a) {
+        String type = a.getLwmquestiontype();
+        String studentAns = a.getLwmstudentanswer();
+        String correctAns = a.getLwmcorrectanswer();
+        if (studentAns == null || correctAns == null) return 0;
+
+        if ("单选题".equals(type) || "判断题".equals(type)) {
+            return studentAns.trim().equals(correctAns.trim()) ? a.getLwmpaperscore() : 0;
+        } else if ("多选题".equals(type)) {
+            String[] stuArr = studentAns.trim().replace("，", ",").split(",");
+            String[] corArr = correctAns.trim().replace("，", ",").split(",");
+            Arrays.sort(stuArr);
+            Arrays.sort(corArr);
+            return Arrays.equals(stuArr, corArr) ? a.getLwmpaperscore() : 0;
+        }
+        return 0; // 简答题不自动评分
+    }
+}
