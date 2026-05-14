@@ -70,12 +70,21 @@ public class lwmGradeExam extends HttpServlet {
         if ("单选题".equals(type) || "判断题".equals(type)) {
             return studentAns.trim().equals(correctAns.trim()) ? a.getLwmpaperscore() : 0;
         } else if ("多选题".equals(type)) {
-            String[] stuArr = studentAns.trim().replace("，", ",").split(",");
-            String[] corArr = correctAns.trim().replace("，", ",").split(",");
+            // Normalize answers: split by comma, or treat each char as option if no comma
+            String[] stuArr = splitAnswer(studentAns.trim());
+            String[] corArr = splitAnswer(correctAns.trim());
             Arrays.sort(stuArr);
             Arrays.sort(corArr);
             return Arrays.equals(stuArr, corArr) ? a.getLwmpaperscore() : 0;
         }
         return 0; // 简答题不自动评分
+    }
+
+    // Normalize multi-select answer: "A,C,D" → ["A","C","D"]; "ACD" → ["A","C","D"]
+    private String[] splitAnswer(String ans) {
+        if (ans.contains(",") || ans.contains("，")) {
+            return ans.replace("，", ",").split(",");
+        }
+        return ans.split("");
     }
 }
