@@ -29,7 +29,14 @@ public class lwmTakeExam extends HttpServlet {
         lwmpaperDAO pDao = new lwmpaperDAO();
         lwmExamPaper paper = pDao.lwmQueryPaperById(paperId);
 
-        if (paper == null || !paper.getLwmclassname().equals(student.getLwmclassname())) {
+        // Check if student's class is among the published classes (comma-separated)
+        boolean classMatch = false;
+        if (paper != null && paper.getLwmclassname() != null) {
+            for (String cls : paper.getLwmclassname().split(",")) {
+                if (cls.trim().equals(student.getLwmclassname())) { classMatch = true; break; }
+            }
+        }
+        if (paper == null || !classMatch) {
             response.setContentType("text/html;charset=UTF-8");
             response.getWriter().println("<script>alert('试卷不存在或不可访问');history.go(-1);</script>");
             return;
