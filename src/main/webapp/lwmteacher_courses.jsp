@@ -35,7 +35,7 @@
     </div>
     <table>
         <thead>
-            <tr><th>序号</th><th>班级</th><th>科目</th><th>学期</th></tr>
+            <tr><th>序号</th><th>班级</th><th>科目</th><th>学期</th><th>操作</th></tr>
         </thead>
         <tbody>
             <% if (courses != null && !courses.isEmpty()) {
@@ -46,10 +46,11 @@
                         <td><%= c.getLwmclassname() %></td>
                         <td><%= c.getLwmsubjectname() %></td>
                         <td><%= c.getLwmsemester() %></td>
+                        <td><a href="lwmViewClassStudents?classname=<%= java.net.URLEncoder.encode(c.getLwmclassname(), "UTF-8") %>" style="color:#3b82f6; text-decoration:none;">查看详情</a></td>
                     </tr>
                 <% }
             } else { %>
-                <tr><td colspan="4" class="empty">暂无排课记录</td></tr>
+                <tr><td colspan="5" class="empty">暂无排课记录</td></tr>
             <% } %>
         </tbody>
     </table>
