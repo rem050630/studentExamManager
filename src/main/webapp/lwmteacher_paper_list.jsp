@@ -17,6 +17,7 @@
         .header h2 { color:#1e293b; font-size:1.5rem; }
         .btn { padding:8px 20px; border-radius:8px; cursor:pointer; text-decoration:none; font-size:0.9rem; border:none; display:inline-block; }
         .btn-primary { background:#059669; color:white; }
+        .btn-edit { background:#3b82f6; color:white; padding:6px 14px; border-radius:6px; text-decoration:none; font-size:0.8rem; margin-right:6px; }
         .btn-danger { background:#ef4444; color:white; padding:6px 14px; border-radius:6px; text-decoration:none; font-size:0.8rem; }
         table { width:100%; background:white; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
         th { background:#f8fafc; padding:12px 14px; text-align:left; font-weight:600; color:#475569; font-size:0.85rem; }
@@ -47,6 +48,7 @@
                         <td><%= p.getLwmexamtime() %>分钟</td>
                         <td><%= p.getLwmexamsore() %></td>
                         <td>
+                            <a href="lwmUpdatePaper?id=<%= p.getLwmpaperid() %>" class="btn-edit">编辑</a>
                             <a href="lwmDeletePaper?id=<%= p.getLwmpaperid() %>" class="btn-danger" onclick="return confirm('确定删除该试卷？')">删除</a>
                         </td>
                     </tr>
