@@ -103,7 +103,7 @@ public class lwmUpdatePaper extends HttpServlet {
                 p.setLwmjdnum(jdNum); p.setLwmjdscore(jdScore); p.setLwmjdnos(rmComma(jdNos));
                 p.setLwmexamsore(danxNum*danxScore + duoxNum*duoxScore + pdNum*pdScore + jdNum*jdScore);
                 p.setLwmpapername(request.getParameter("lwmpapername"));
-                p.setLwmclassname(request.getParameter("lwmclassname"));
+
                 p.setLwmstarttime(request.getParameter("lwmstarttime"));
                 p.setLwmendtime(request.getParameter("lwmendtime"));
                 try { p.setLwmexamtime(Integer.parseInt(request.getParameter("lwmexamtime"))); } catch(Exception e) {}
@@ -118,7 +118,7 @@ public class lwmUpdatePaper extends HttpServlet {
         paper.setLwmpaperid(paperId);
         paper.setLwmpapername(request.getParameter("lwmpapername"));
         paper.setLwmsubjectid(Integer.parseInt(request.getParameter("lwmsubjectid")));
-        paper.setLwmclassname(request.getParameter("lwmclassname"));
+
         paper.setLwmstarttime(request.getParameter("lwmstarttime"));
         paper.setLwmendtime(request.getParameter("lwmendtime"));
         try { paper.setLwmexamtime(Integer.parseInt(request.getParameter("lwmexamtime"))); } catch(Exception e) {}

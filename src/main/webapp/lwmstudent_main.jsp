@@ -20,8 +20,8 @@
     try {
         ResultSet rs = db.doQuery(
             "SELECT p.* FROM lwmexampaper p " +
-            "WHERE p.lwmclassname = ? " +
-            "AND NOT EXISTS (SELECT 1 FROM lwmexamrecord r WHERE r.lwmpaperid = p.lwmpaperid AND r.lwmstudentid = ? AND r.lwmsubmitstatus = 1) " +
+            "WHERE FIND_IN_SET(?, p.lwmclassname) " +
+            "AND NOT EXISTS (SELECT 1 FROM lwmexamrecord r WHERE r.lwmpaperid = p.lwmpaperid AND r.lwmstudentid = ? AND r.lwmsubmitstatus IN (1, 2)) " +
             "ORDER BY p.lwmstarttime DESC",
             new Object[]{student.getLwmclassname(), student.getLwmstudentid()});
         while (rs.next()) {
@@ -97,6 +97,7 @@
         td { padding:10px 14px; border-bottom:1px solid #f1f5f9; font-size:0.85rem; }
         .badge { padding:4px 10px; border-radius:12px; font-size:0.8rem; }
         .badge-green { background:#dcfce7; color:#16a34a; }
+        .badge-blue { background:#dbeafe; color:#2563eb; }
         .badge-yellow { background:#fef3c7; color:#d97706; }
         .info-card { background:white; border-radius:16px; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
         .info-row { display:flex; padding:10px 0; border-bottom:1px solid #f1f5f9; }
@@ -162,10 +163,10 @@
         <div id="myPapers" class="module-panel">
             <h3 style="margin-bottom:16px;">我的考试记录</h3>
             <table>
-                <thead><tr><th>试卷名称</th><th>考试时间</th><th>状态</th><th>成绩</th></tr></thead>
+                <thead><tr><th>试卷名称</th><th>考试时间</th><th>状态</th><th>成绩</th><th>操作</th></tr></thead>
                 <tbody>
                 <% if (myRecords.isEmpty()) { %>
-                    <tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:24px;">暂无考试记录</td></tr>
+                    <tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:24px;">暂无考试记录</td></tr>
                 <% } else {
                     for (Map<String,Object> r : myRecords) {
                         int status = (int) r.get("status");
@@ -173,8 +174,23 @@
                         <tr>
                             <td><%= r.get("paperName") %></td>
                             <td><%= r.get("startTime") %></td>
-                            <td><span class="badge <%= status == 1 ? "badge-green" : "badge-yellow" %>"><%= status == 1 ? "已提交" : "未提交" %></span></td>
-                            <td><strong><%= scoreObj != null ? scoreObj + "分" : status == 1 ? "待批阅" : "--" %></strong></td>
+                            <td>
+                                <% if (status == 2) { %>
+                                    <span class="badge badge-blue">已批阅</span>
+                                <% } else if (status == 1) { %>
+                                    <span class="badge badge-green">已提交</span>
+                                <% } else { %>
+                                    <span class="badge badge-yellow">未提交</span>
+                                <% } %>
+                            </td>
+                            <td><strong><%= status == 2 ? (scoreObj != null ? scoreObj + "分" : "--") : (status == 1 ? "待批阅" : "--") %></strong></td>
+                            <td>
+                                <% if (status >= 1) { %>
+                                    <a href="lwmViewExam?recordId=<%= r.get("recordId") %>" style="color:#3b82f6;text-decoration:none;font-weight:500;">查看</a>
+                                <% } else { %>
+                                    <span style="color:#94a3b8;">--</span>
+                                <% } %>
+                            </td>
                         </tr>
                 <% } } %>
                 </tbody>

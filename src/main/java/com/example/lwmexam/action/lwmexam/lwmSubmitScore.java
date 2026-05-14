@@ -11,6 +11,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.util.Enumeration;
 
 @WebServlet("/lwmSubmitScore")
@@ -50,6 +53,19 @@ public class lwmSubmitScore extends HttpServlet {
         examScore.setLwmstudentid(studentId);
         examScore.setLwmpaperid(paperId);
         dao.lwmSaveScore(examScore);
+
+        // Update submit status to 2 (已批阅)
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection conn = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/lwmexam?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8",
+                "root", "123456");
+            PreparedStatement pstmt = conn.prepareStatement(
+                "UPDATE lwmexamrecord SET lwmsubmitstatus = 2 WHERE lwmrecordid = ?");
+            pstmt.setInt(1, recordId);
+            pstmt.executeUpdate();
+            pstmt.close(); conn.close();
+        } catch (Exception e) { e.printStackTrace(); }
 
         out.println("<script>alert('评分提交成功，总分：" + totalScore + "');location.href='lwmQueryExamRecords';</script>");
     }

@@ -31,7 +31,7 @@ public class lwmCreatePaper extends HttpServlet {
 
         String mode = request.getParameter("mode");
         int subjectId = Integer.parseInt(request.getParameter("lwmsubjectid"));
-        String classname = request.getParameter("lwmclassname");
+        String classname = "";
         String paperName = request.getParameter("lwmpapername");
         String startTime = request.getParameter("lwmstarttime");
         String endTime = request.getParameter("lwmendtime");

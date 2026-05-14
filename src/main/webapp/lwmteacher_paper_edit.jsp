@@ -67,9 +67,12 @@
             </div>
         </div>
 
-        <div class="inline-group">
-            <div class="form-group">
-                <label>所属科目</label>
+        <div class="form-group">
+            <label>所属科目</label>
+            <% if (hasSubmit) { %>
+                <input type="text" value="<%= paper.getLwmsubjectname() %>" readonly style="background:#f8fafc;">
+                <input type="hidden" name="lwmsubjectid" value="<%= paper.getLwmsubjectid() %>">
+            <% } else { %>
                 <select name="lwmsubjectid" required>
                     <% java.util.Set<Integer> seenSubjs = new java.util.HashSet<>();
                     for (lwmstudentcourseteacher c : courses) {
@@ -77,17 +80,7 @@
                             <option value="<%= c.getLwmsubjectid() %>" <%= paper.getLwmsubjectid() == c.getLwmsubjectid() ? "selected" : "" %>><%= c.getLwmsubjectname() %></option>
                     <% } } %>
                 </select>
-            </div>
-            <div class="form-group">
-                <label>分配班级</label>
-                <select name="lwmclassname" required>
-                    <% java.util.Set<String> seenClasses = new java.util.HashSet<>();
-                    for (lwmstudentcourseteacher c : courses) {
-                        if (seenClasses.add(c.getLwmclassname())) { %>
-                            <option value="<%= c.getLwmclassname() %>" <%= paper.getLwmclassname().equals(c.getLwmclassname()) ? "selected" : "" %>><%= c.getLwmclassname() %></option>
-                    <% } } %>
-                </select>
-            </div>
+            <% } %>
         </div>
 
         <div class="inline-group">

@@ -59,6 +59,30 @@ public class lwmpaperDAO {
             new Object[]{teacherId});
     }
 
+    // Query papers for a teacher with optional filters (null or empty = no filter).
+    public List<lwmExamPaper> lwmQueryByTeacherWithFilters(int teacherId, String classname, String papername, Integer subjectId) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT p.*, s.lwmsubjectname FROM lwmexampaper p " +
+            "LEFT JOIN lwmexamsubject s ON p.lwmsubjectid = s.lwmsubjectid " +
+            "WHERE p.lwmteacherid = ?");
+        List<Object> params = new ArrayList<>();
+        params.add(teacherId);
+        if (classname != null && !classname.isEmpty()) {
+            sql.append(" AND p.lwmclassname LIKE CONCAT('%', ?, '%')");
+            params.add(classname);
+        }
+        if (papername != null && !papername.isEmpty()) {
+            sql.append(" AND p.lwmpapername LIKE ?");
+            params.add("%" + papername + "%");
+        }
+        if (subjectId != null) {
+            sql.append(" AND p.lwmsubjectid = ?");
+            params.add(subjectId);
+        }
+        sql.append(" ORDER BY p.lwmpaperid DESC");
+        return lwmQuerySomePaper(sql.toString(), params.toArray());
+    }
+
     // Insert a new paper. Returns the auto-generated paper ID, or 0 on failure.
     public int lwmAddPaper(lwmExamPaper p) {
         int paperId = 0;
@@ -109,8 +133,8 @@ public class lwmpaperDAO {
     // Update paper basic info (not question composition).
     public int lwmUpdatePaper(lwmExamPaper p) {
         res = db.doUpdate(
-            "UPDATE lwmexampaper SET lwmpapername=?,lwmsubjectid=?,lwmexamtime=?,lwmexamsore=?,lwmstarttime=?,lwmendtime=?,lwmclassname=? WHERE lwmpaperid=?",
-            new Object[]{p.getLwmpapername(),p.getLwmsubjectid(),p.getLwmexamtime(),p.getLwmexamsore(),p.getLwmstarttime(),p.getLwmendtime(),p.getLwmclassname(),p.getLwmpaperid()});
+            "UPDATE lwmexampaper SET lwmpapername=?,lwmsubjectid=?,lwmexamtime=?,lwmexamsore=?,lwmstarttime=?,lwmendtime=? WHERE lwmpaperid=?",
+            new Object[]{p.getLwmpapername(),p.getLwmsubjectid(),p.getLwmexamtime(),p.getLwmexamsore(),p.getLwmstarttime(),p.getLwmendtime(),p.getLwmpaperid()});
         db.close();
         return res;
     }
@@ -134,7 +158,7 @@ public class lwmpaperDAO {
         boolean has = false;
         try {
             rs = db.doQuery(
-                "SELECT COUNT(*) FROM lwmexamrecord WHERE lwmpaperid = ? AND lwmsubmitstatus = 1",
+                "SELECT COUNT(*) FROM lwmexamrecord WHERE lwmpaperid = ? AND lwmsubmitstatus IN (1, 2)",
                 new Object[]{paperId});
             if (rs.next()) has = rs.getInt(1) > 0;
         } catch (Exception e) { e.printStackTrace(); }
