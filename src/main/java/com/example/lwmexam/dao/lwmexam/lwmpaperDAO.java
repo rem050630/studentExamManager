@@ -61,14 +61,20 @@ public class lwmpaperDAO {
 
     // Insert a new paper. Returns the auto-generated paper ID, or 0 on failure.
     public int lwmAddPaper(lwmExamPaper p) {
+        int paperId = 0;
         res = db.doUpdate(
             "INSERT INTO lwmexampaper(lwmpapername,lwmsubjectid,lwmexamtime,lwmexamsore,lwmstarttime,lwmendtime,lwmteacherid,lwmclassname,lwmdanxnum,lwmdanxscore,lwmdanxnos,lwmduoxnum,lwmduoxscore,lwmduoxnos,lwmpdnum,lwmpdscore,lwmpdnos,lwmjdnum,lwmjdscore,lwmjdnos) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             new Object[]{p.getLwmpapername(),p.getLwmsubjectid(),p.getLwmexamtime(),p.getLwmexamsore(),p.getLwmstarttime(),p.getLwmendtime(),p.getLwmteacherid(),p.getLwmclassname(),p.getLwmdanxnum(),p.getLwmdanxscore(),p.getLwmdanxnos(),p.getLwmduoxnum(),p.getLwmduoxscore(),p.getLwmduoxnos(),p.getLwmpdnum(),p.getLwmpdscore(),p.getLwmpdnos(),p.getLwmjdnum(),p.getLwmjdscore(),p.getLwmjdnos()});
-        int paperId = 0;
-        try {
-            rs = db.doQuery("SELECT LAST_INSERT_ID()", new Object[]{});
-            if (rs.next()) paperId = rs.getInt(1);
-        } catch (Exception e) { e.printStackTrace(); }
+        if (res > 0) {
+            // LAST_INSERT_ID() requires same connection as INSERT, so use MAX
+            // to retrieve the inserted paper ID
+            try {
+                rs = db.doQuery(
+                    "SELECT MAX(lwmpaperid) FROM lwmexampaper WHERE lwmteacherid=? AND lwmpapername=?",
+                    new Object[]{p.getLwmteacherid(), p.getLwmpapername()});
+                if (rs.next()) paperId = rs.getInt(1);
+            } catch (Exception e) { e.printStackTrace(); }
+        }
         db.close();
         return paperId;
     }
