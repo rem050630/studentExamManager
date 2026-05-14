@@ -11,7 +11,7 @@
 
     lwmCourseArrangeDAO arrangeDao = new lwmCourseArrangeDAO();
     List<lwmstudentcourseteacher> courses = arrangeDao.lwmQuerySomeSct(
-        "SELECT DISTINCT sct.lwmsubjectid, sct.lwmclassname, sub.lwmsubjectname FROM lwmstudentcourseteacher sct LEFT JOIN lwmexamsubject sub ON sct.lwmsubjectid = sub.lwmsubjectid WHERE sct.lwmteacherid = ?",
+        "SELECT sct.*, sub.lwmsubjectname FROM lwmstudentcourseteacher sct LEFT JOIN lwmexamsubject sub ON sct.lwmsubjectid = sub.lwmsubjectid WHERE sct.lwmteacherid = ?",
         new Object[]{teacher.getLwmteacherid()});
 
     // Load questions for manual mode if subject selected
@@ -64,18 +64,22 @@
                 <label>所属科目</label>
                 <select name="lwmsubjectid" id="subjectSelect" required>
                     <option value="">请选择</option>
-                    <% for (lwmstudentcourseteacher c : courses) { %>
+                    <% java.util.Set<Integer> seenSubjs = new java.util.HashSet<>();
+                    for (lwmstudentcourseteacher c : courses) {
+                        if (seenSubjs.add(c.getLwmsubjectid())) { %>
                         <option value="<%= c.getLwmsubjectid() %>"><%= c.getLwmsubjectname() %></option>
-                    <% } %>
+                    <% } } %>
                 </select>
             </div>
             <div class="form-group">
                 <label>分配班级</label>
                 <select name="lwmclassname" required>
                     <option value="">请选择</option>
-                    <% for (lwmstudentcourseteacher c : courses) { %>
+                    <% java.util.Set<String> seenClasses = new java.util.HashSet<>();
+                    for (lwmstudentcourseteacher c : courses) {
+                        if (seenClasses.add(c.getLwmclassname())) { %>
                         <option value="<%= c.getLwmclassname() %>"><%= c.getLwmclassname() %></option>
-                    <% } %>
+                    <% } } %>
                 </select>
             </div>
         </div>

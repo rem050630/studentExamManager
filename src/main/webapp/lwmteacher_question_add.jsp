@@ -13,7 +13,7 @@
 
     lwmCourseArrangeDAO arrangeDao = new lwmCourseArrangeDAO();
     List<lwmstudentcourseteacher> courses = arrangeDao.lwmQuerySomeSct(
-        "SELECT DISTINCT sct.lwmsubjectid, sub.lwmsubjectname FROM lwmstudentcourseteacher sct LEFT JOIN lwmexamsubject sub ON sct.lwmsubjectid = sub.lwmsubjectid WHERE sct.lwmteacherid = ?",
+        "SELECT sct.*, sub.lwmsubjectname FROM lwmstudentcourseteacher sct LEFT JOIN lwmexamsubject sub ON sct.lwmsubjectid = sub.lwmsubjectid WHERE sct.lwmteacherid = ?",
         new Object[]{teacher.getLwmteacherid()});
 %>
 <!DOCTYPE html>
@@ -49,9 +49,11 @@
             <label>所属科目</label>
             <select name="lwmsubjectid" required>
                 <option value="">请选择科目</option>
-                <% for (lwmstudentcourseteacher c : courses) { %>
+                <% java.util.Set<Integer> seenSubjects = new java.util.HashSet<>();
+                for (lwmstudentcourseteacher c : courses) {
+                    if (seenSubjects.add(c.getLwmsubjectid())) { %>
                     <option value="<%= c.getLwmsubjectid() %>" <%= isEdit && question.getLwmsubjectid() == c.getLwmsubjectid() ? "selected" : "" %>><%= c.getLwmsubjectname() %></option>
-                <% } %>
+                <% } } %>
             </select>
         </div>
         <div class="form-group">
