@@ -31,7 +31,7 @@ public class lwmQueryQuestion extends HttpServlet {
 
         lwmCourseArrangeDAO arrangeDao = new lwmCourseArrangeDAO();
         List<lwmstudentcourseteacher> courses = arrangeDao.lwmQuerySomeSct(
-            "SELECT * FROM lwmstudentcourseteacher WHERE lwmteacherid = ?",
+            "SELECT sct.*, sub.lwmsubjectname, tea.lwmteachername FROM lwmstudentcourseteacher sct LEFT JOIN lwmexamsubject sub ON sct.lwmsubjectid = sub.lwmsubjectid LEFT JOIN lwmteacher tea ON sct.lwmteacherid = tea.lwmteacherid WHERE sct.lwmteacherid = ?",
             new Object[]{teacher.getLwmteacherid()});
 
         String subjectIds = courses.stream()
