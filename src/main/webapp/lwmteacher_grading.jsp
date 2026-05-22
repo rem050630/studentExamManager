@@ -64,10 +64,29 @@
         } else { %>
             <div class="card"><p style="color:#94a3b8;">暂无答题数据</p></div>
         <% } %>
-        <div class="btn-row">
+        <div class="btn-row" style="align-items:center;gap:16px;">
+            <span style="font-size:1rem;font-weight:600;color:#1e293b;">总分：<span id="totalScore" style="color:#059669;font-size:1.2rem;">0</span> 分</span>
             <button type="submit" class="btn btn-primary">提交评分</button>
         </div>
     </form>
 </div>
+<script>
+(function() {
+    var inputs = document.querySelectorAll('.score-input');
+    var totalEl = document.getElementById('totalScore');
+    function updateTotal() {
+        var sum = 0;
+        for (var i = 0; i < inputs.length; i++) {
+            var v = parseInt(inputs[i].value) || 0;
+            sum += v;
+        }
+        totalEl.textContent = sum;
+    }
+    for (var i = 0; i < inputs.length; i++) {
+        inputs[i].addEventListener('input', updateTotal);
+    }
+    updateTotal();
+})();
+</script>
 </body>
 </html>

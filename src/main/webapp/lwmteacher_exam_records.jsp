@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <%
@@ -47,13 +48,7 @@
                 <% } } %>
             </select>
             <label style="font-weight:500;color:#475569;font-size:0.9rem;">试卷：</label>
-            <select name="papername" style="padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.9rem;">
-                <option value="">-- 全部试卷 --</option>
-                <% if (paperList != null) {
-                    for (String pn : paperList) { %>
-                        <option value="<%= pn %>" <%= pn.equals(selectedPaper) ? "selected" : "" %>><%= pn %></option>
-                <% } } %>
-            </select>
+            <input type="text" name="papername" placeholder="输入试卷名称模糊搜索" value="<%= selectedPaper != null ? selectedPaper : "" %>" style="padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.9rem;width:200px;">
             <button type="submit" style="padding:8px 20px;background:#3b82f6;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.9rem;">查询</button>
             <% if ((selectedClass != null && !selectedClass.isEmpty()) || (selectedPaper != null && !selectedPaper.isEmpty())) { %>
                 <a href="lwmQueryExamRecords" style="color:#64748b;font-size:0.85rem;">显示全部</a>
@@ -62,7 +57,7 @@
     </div>
     <table>
         <thead>
-            <tr><th>序号</th><th>试卷名称</th><th>学号</th><th>姓名</th><th>班级</th><th>开始时间</th><th>提交时间</th><th>状态</th><th>操作</th></tr>
+            <tr><th>序号</th><th>试卷名称</th><th>学号</th><th>姓名</th><th>班级</th><th>开始时间</th><th>提交时间</th><th>状态</th><th>分数</th><th>操作</th></tr>
         </thead>
         <tbody>
             <% if (records != null && !records.isEmpty()) {
@@ -86,6 +81,14 @@
                             <% } %>
                         </td>
                         <td>
+                            <% if (status == 2) {
+                                int score = (int) r.get("lwmtotalscore"); %>
+                                <strong><%= score %></strong>
+                            <% } else { %>
+                                --
+                            <% } %>
+                        </td>
+                        <td>
                             <% if (status == 1) { %>
                                 <a href="lwmGradeExam?recordId=<%= r.get("lwmrecordid") %>" class="btn btn-primary">评分</a>
                             <% } else if (status == 2) { %>
@@ -98,10 +101,11 @@
                     </tr>
                 <% }
             } else { %>
-                <tr><td colspan="9" class="empty">暂无考试记录</td></tr>
+                <tr><td colspan="10" class="empty">暂无考试记录</td></tr>
             <% } %>
         </tbody>
     </table>
+    <jsp:include page="lwmfoot.jsp"></jsp:include>
 </div>
 </body>
 </html>
