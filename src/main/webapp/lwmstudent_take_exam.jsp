@@ -56,6 +56,7 @@
         .timer { float:right; background:rgba(255,255,255,0.15); padding:6px 16px; border-radius:20px; font-size:0.9rem; }
         .timer-warning { background:rgba(220,38,38,0.8) !important; animation: pulse 1s infinite; }
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
+        .section-title { font-size:1.1rem; font-weight:700; color:#1e293b; padding:16px 0 8px 0; margin-top:8px; border-bottom:2px solid #e2e8f0; margin-bottom:12px; }
     </style>
 </head>
 <body>
@@ -71,17 +72,28 @@
         <input type="hidden" name="paperId" value="<%= paper.getLwmpaperid() %>">
 
         <% if (questions != null) {
-            for (int i = 0; i < questions.size(); i++) {
-                lwmExamQuestion q = questions.get(i);
+            String currentType = "";
+            int num = 0;
+            java.util.Map<String, String> sectionTitles = new java.util.HashMap<>();
+            sectionTitles.put("单选题", "一、单选题");
+            sectionTitles.put("多选题", "二、多选题");
+            sectionTitles.put("判断题", "三、判断题");
+            sectionTitles.put("简答题", "四、简答题");
+            for (lwmExamQuestion q : questions) {
                 String type = q.getLwmquestiontype();
                 int maxScore = 0;
                 if ("单选题".equals(type)) maxScore = paper.getLwmdanxscore();
                 else if ("多选题".equals(type)) maxScore = paper.getLwmduoxscore();
                 else if ("判断题".equals(type)) maxScore = paper.getLwmpdscore();
                 else if ("简答题".equals(type)) maxScore = paper.getLwmjdscore();
-        %>
+                if (!type.equals(currentType)) {
+                    currentType = type;
+                    num = 1;
+                    String title = sectionTitles.getOrDefault(type, type); %>
+                    <div class="section-title"><%= title %></div>
+                <% } %>
             <div class="card">
-                <h3>第 <%= i+1 %> 题 — <%= type %>（<%= maxScore %> 分）</h3>
+                <h3><%= num++ %>. <%= type %>（<%= maxScore %> 分）</h3>
                 <p style="margin-bottom:10px;font-size:0.95rem;"><%= q.getLwmquestioncontent() %></p>
 
                 <% if ("单选题".equals(type)) { %>
