@@ -25,6 +25,26 @@ public class lwmGradeExam extends HttpServlet {
         }
 
         int recordId = Integer.parseInt(request.getParameter("recordId"));
+
+        // Check submit status — reject if already finalized
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            java.sql.Connection conn = java.sql.DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/lwmexam?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8",
+                "root", "123456");
+            java.sql.PreparedStatement ps = conn.prepareStatement(
+                "SELECT lwmsubmitstatus FROM lwmexamrecord WHERE lwmrecordid = ?");
+            ps.setInt(1, recordId);
+            java.sql.ResultSet rs = ps.executeQuery();
+            if (rs.next() && rs.getInt("lwmsubmitstatus") == 2) {
+                rs.close(); ps.close(); conn.close();
+                response.setContentType("text/html;charset=UTF-8");
+                response.getWriter().println("<script>alert('成绩已提交，无法修改');location.href='lwmQueryExamRecords';</script>");
+                return;
+            }
+            rs.close(); ps.close(); conn.close();
+        } catch (Exception e) { e.printStackTrace(); }
+
         lwmscoreDAO dao = new lwmscoreDAO();
         List<lwmStudentAnswer> answers = dao.lwmQueryAnswersByRecord(recordId);
 
