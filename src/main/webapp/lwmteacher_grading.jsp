@@ -35,10 +35,11 @@
 <body>
 <div class="container">
     <div class="header"><h2>试卷评分</h2></div>
-    <form method="post" action="lwmSubmitScore">
+    <form method="post" action="lwmSubmitScore" id="gradeForm">
         <input type="hidden" name="recordId" value="<%= recordId %>">
         <input type="hidden" name="studentId" value="<%= studentId %>">
         <input type="hidden" name="paperId" value="<%= paperId %>">
+        <input type="hidden" name="finalize" id="finalizeInput" value="false">
         <% if (answers != null && !answers.isEmpty()) {
             for (lwmStudentAnswer a : answers) { %>
                 <div class="card">
@@ -66,7 +67,8 @@
         <% } %>
         <div class="btn-row" style="align-items:center;gap:16px;">
             <span style="font-size:1rem;font-weight:600;color:#1e293b;">总分：<span id="totalScore" style="color:#059669;font-size:1.2rem;">0</span> 分</span>
-            <button type="submit" class="btn btn-primary">提交评分</button>
+            <button type="button" class="btn" style="background:#fff;border:1px solid #e2e8f0;color:#475569;" onclick="saveGrade()">保存评分</button>
+            <button type="button" class="btn btn-primary" onclick="submitGrade()">提交成绩</button>
         </div>
     </form>
 </div>
@@ -86,6 +88,15 @@
         inputs[i].addEventListener('input', updateTotal);
     }
     updateTotal();
+    window.saveGrade = function() {
+        document.getElementById('finalizeInput').value = 'false';
+        document.getElementById('gradeForm').submit();
+    };
+    window.submitGrade = function() {
+        if (!confirm('提交后学生将能看到成绩，确定提交吗？')) return;
+        document.getElementById('finalizeInput').value = 'true';
+        document.getElementById('gradeForm').submit();
+    };
 })();
 </script>
 </body>

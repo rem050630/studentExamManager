@@ -31,6 +31,7 @@ public class lwmSubmitScore extends HttpServlet {
         int recordId = Integer.parseInt(request.getParameter("recordId"));
         int studentId = Integer.parseInt(request.getParameter("studentId"));
         int paperId = Integer.parseInt(request.getParameter("paperId"));
+        boolean finalize = "true".equals(request.getParameter("finalize"));
 
         lwmscoreDAO dao = new lwmscoreDAO();
         int totalScore = 0;
@@ -54,19 +55,22 @@ public class lwmSubmitScore extends HttpServlet {
         examScore.setLwmpaperid(paperId);
         dao.lwmSaveScore(examScore);
 
-        // Update submit status to 2 (已批阅)
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection conn = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/lwmexam?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8",
-                "root", "123456");
-            PreparedStatement pstmt = conn.prepareStatement(
-                "UPDATE lwmexamrecord SET lwmsubmitstatus = 2 WHERE lwmrecordid = ?");
-            pstmt.setInt(1, recordId);
-            pstmt.executeUpdate();
-            pstmt.close(); conn.close();
-        } catch (Exception e) { e.printStackTrace(); }
-
-        out.println("<script>alert('评分提交成功，总分：" + totalScore + "');location.href='lwmQueryExamRecords';</script>");
+        // Only set status to 2 when teacher explicitly clicks "提交成绩"
+        if (finalize) {
+            try {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                Connection conn = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/lwmexam?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8",
+                    "root", "123456");
+                PreparedStatement pstmt = conn.prepareStatement(
+                    "UPDATE lwmexamrecord SET lwmsubmitstatus = 2 WHERE lwmrecordid = ?");
+                pstmt.setInt(1, recordId);
+                pstmt.executeUpdate();
+                pstmt.close(); conn.close();
+            } catch (Exception e) { e.printStackTrace(); }
+            out.println("<script>alert('成绩提交成功，总分：" + totalScore + "');location.href='lwmQueryExamRecords';</script>");
+        } else {
+            out.println("<script>alert('评分已保存，总分：" + totalScore + "（尚未提交成绩）');location.href='lwmQueryExamRecords';</script>");
+        }
     }
 }
