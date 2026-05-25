@@ -91,7 +91,8 @@ public class lwmSubmitExam extends HttpServlet {
             return;
         }
 
-        saveAnswers(request, recordId, student.getLwmstudentid(), paperId);
+        java.util.Set<Integer> allQIds = new java.util.HashSet<>(pDao.lwmGetPaperQuestionIds(paperId));
+        saveAnswers(request, recordId, student.getLwmstudentid(), paperId, allQIds);
 
         if (isAutoSubmit) {
             out.println("<script>alert('考试时间到，系统已自动交卷');location.href='lwmstudent_main.jsp';</script>");
@@ -100,8 +101,9 @@ public class lwmSubmitExam extends HttpServlet {
         }
     }
 
-    private void saveAnswers(HttpServletRequest request, int recordId, int studentId, int paperId) {
+    private void saveAnswers(HttpServletRequest request, int recordId, int studentId, int paperId, java.util.Set<Integer> allQuestionIds) {
         MysqlConn db2 = new MysqlConn();
+        java.util.Set<Integer> savedIds = new java.util.HashSet<>();
         try {
             java.util.Enumeration<String> names = request.getParameterNames();
             while (names.hasMoreElements()) {
@@ -113,6 +115,15 @@ public class lwmSubmitExam extends HttpServlet {
                     db2.doUpdate(
                         "INSERT INTO lwmstudentanswer(lwmrecordid,lwmquestionid,lwmstudentanswer,lwmquestionscore,lwmstudentid,lwmpaperid) VALUES(?,?,?,0,?,?)",
                         new Object[]{recordId, questionId, answer, studentId, paperId});
+                    savedIds.add(questionId);
+                }
+            }
+            // Insert empty answers for unanswered questions
+            for (int qid : allQuestionIds) {
+                if (!savedIds.contains(qid)) {
+                    db2.doUpdate(
+                        "INSERT INTO lwmstudentanswer(lwmrecordid,lwmquestionid,lwmstudentanswer,lwmquestionscore,lwmstudentid,lwmpaperid) VALUES(?,?,?,0,?,?)",
+                        new Object[]{recordId, qid, "", studentId, paperId});
                 }
             }
         } catch (Exception e) { e.printStackTrace(); }
