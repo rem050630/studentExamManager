@@ -92,7 +92,7 @@
                             <% if (status == 1) { %>
                                 <a href="lwmGradeExam?recordId=<%= r.get("lwmrecordid") %>" class="btn btn-primary">评分</a>
                             <% } else if (status == 2) { %>
-                                <a href="lwmGradeExam?recordId=<%= r.get("lwmrecordid") %>" class="btn btn-primary" style="background:#f59e0b;">修改成绩</a>
+                                <span class="badge badge-reviewed" style="font-size:0.8rem;">已批阅</span>
                             <% } else { %>
                                 <span class="btn btn-disabled">待提交</span>
                             <% } %>
