@@ -28,7 +28,7 @@
     String paperName = (String) request.getAttribute("paperName");
     int status = request.getAttribute("status") != null ? (int) request.getAttribute("status") : 0;
     Integer totalScore = (Integer) request.getAttribute("totalScore");
-    boolean editable = (status == 1);
+    boolean graded = (status == 2);
 %>
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -75,7 +75,7 @@
 <div class="container">
     <div class="header">
         <a href="lwmstudent_main.jsp" class="btn btn-secondary" style="padding:8px 18px;font-size:0.85rem;">返回</a>
-        <h2><%= editable ? "查看 / 修改试卷" : "查看试卷" %></h2>
+        <h2>查看试卷</h2>
     </div>
 
     <div class="summary">
@@ -87,12 +87,12 @@
             <div class="label">题目数量</div>
             <div class="value"><%= answers != null ? answers.size() : 0 %> 道</div>
         </div>
-        <% if (status == 2 && totalScore != null) { %>
+        <% if (graded && totalScore != null) { %>
             <div class="item">
                 <div class="label">总成绩</div>
                 <div class="value" style="color:#16a34a;"><%= totalScore %> 分</div>
             </div>
-        <% } else if (editable) { %>
+        <% } else if (!graded) { %>
             <div class="item">
                 <div class="label">状态</div>
                 <div class="value" style="color:#3b82f6;">待批阅</div>
@@ -100,13 +100,8 @@
         <% } %>
     </div>
 
-    <% if (editable) { %>
-        <div class="editable-hint">老师尚未批阅，你可以修改答案。修改后需等待老师重新评分。</div>
-    <% } %>
-
-    <% if (editable) { %>
-        <form method="post" action="lwmUpdateStudentAnswer">
-            <input type="hidden" name="recordId" value="<%= recordId %>">
+    <% if (!graded) { %>
+        <div class="editable-hint">试卷已提交，等待教师批阅。</div>
     <% } %>
 
     <% if (answers != null && !answers.isEmpty()) {
@@ -117,8 +112,8 @@
             int maxScore = a.getLwmpaperscore();
 
             String borderClass = "";
-            if (!editable) {
-                boolean isCorrect;
+            boolean isCorrect = false;
+            if (graded) {
                 if ("多选题".equals(a.getLwmquestiontype())) {
                     isCorrect = isMultiSelectCorrect(studentAns, correctAns);
                 } else {
@@ -147,26 +142,21 @@
 
             <div class="answer-row">
                 <strong>你的答案：</strong>
-                <% if (editable) { %>
-                    <input type="text" name="ans_<%= a.getLwmanswerid() %>" class="answer-input" value="<%= studentAns != null ? studentAns : "" %>" placeholder="输入你的答案">
-                <% } else {
-                    boolean isCorrect;
-                    if ("多选题".equals(a.getLwmquestiontype())) {
-                        isCorrect = isMultiSelectCorrect(studentAns, correctAns);
-                    } else {
-                        isCorrect = studentAns != null && correctAns != null && studentAns.trim().equalsIgnoreCase(correctAns.trim());
-                    }
+                <% if (graded) {
                     boolean fullScore = qScore >= maxScore;
                     boolean partialScore = qScore > 0 && qScore < maxScore;
                     String badgeClass = fullScore ? "result-correct" : (partialScore ? "result-partial" : "result-wrong");
                     String badgeText = fullScore ? "正确" : (partialScore ? "部分正确" : "错误");
                 %>
-                    <span class="<%= isCorrect ? "correct" : "wrong" %>"><%= studentAns != null ? studentAns : "(未作答)" %></span>
+                    <span class="<%= isCorrect ? "correct" : "wrong" %>"><%= studentAns != null && !studentAns.isEmpty() ? studentAns : "(未作答)" %></span>
                     <span class="result-badge <%= badgeClass %>"><%= badgeText %></span>
+                <% } else { %>
+                    <span><%= studentAns != null && !studentAns.isEmpty() ? studentAns : "(未作答)" %></span>
+                    <span class="result-badge" style="background:#eff6ff;color:#3b82f6;">待批阅</span>
                 <% } %>
             </div>
 
-            <% if (!editable) { %>
+            <% if (graded) { %>
                 <div class="answer-row">
                     <strong>正确答案：</strong><span class="correct"><%= correctAns != null ? correctAns : "--" %></span>
                 </div>
@@ -178,13 +168,6 @@
     <% }
     } else { %>
         <div class="card"><p class="empty">暂无答题数据</p></div>
-    <% } %>
-
-    <% if (editable) { %>
-            <div class="btn-row">
-                <button type="submit" class="btn btn-primary">保存修改</button>
-            </div>
-        </form>
     <% } %>
 
 </div>
