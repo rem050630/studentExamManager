@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @WebServlet("/lwmTakeExam")
@@ -74,6 +75,15 @@ public class lwmTakeExam extends HttpServlet {
             lwmExamQuestion q = qDao.lwmQueryById(qId);
             if (q != null) questions.add(q);
         }
+        questions.sort(Comparator.comparingInt(q -> {
+            switch (q.getLwmquestiontype()) {
+                case "单选题": return 1;
+                case "多选题": return 2;
+                case "判断题": return 3;
+                case "简答题": return 4;
+                default: return 5;
+            }
+        }));
 
         // Load existing draft record (status=0) for this student+paper, or create one
         java.util.Map<Integer, String> draftAnswers = new java.util.HashMap<>();

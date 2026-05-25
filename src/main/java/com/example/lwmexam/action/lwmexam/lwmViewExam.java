@@ -17,6 +17,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Comparator;
 import java.util.List;
 
 @WebServlet("/lwmViewExam")
@@ -29,7 +30,6 @@ public class lwmViewExam extends HttpServlet {
 
         int recordId = Integer.parseInt(request.getParameter("recordId"));
 
-        // Verify record belongs to this student and get paper info
         String paperName = "";
         int status = 0;
         Integer totalScore = null;
@@ -68,6 +68,16 @@ public class lwmViewExam extends HttpServlet {
         List<lwmStudentAnswer> answers = dao.lwmQueryAnswersByRecord(recordId);
 
         // Set per-question max scores from paper config
+        answers.sort(Comparator.comparingInt(a -> {
+            switch (a.getLwmquestiontype() != null ? a.getLwmquestiontype() : "") {
+                case "单选题": return 1;
+                case "多选题": return 2;
+                case "判断题": return 3;
+                case "简答题": return 4;
+                default: return 5;
+            }
+        }));
+
         if (!answers.isEmpty()) {
             lwmpaperDAO pDao = new lwmpaperDAO();
             lwmExamPaper paper = pDao.lwmQueryPaperById(answers.get(0).getLwmpaperid());
