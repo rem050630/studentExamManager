@@ -80,19 +80,41 @@
         var sum = 0;
         for (var i = 0; i < inputs.length; i++) {
             var v = parseInt(inputs[i].value) || 0;
+            var max = parseInt(inputs[i].max) || 0;
+            if (v > max) {
+                inputs[i].style.borderColor = '#ef4444';
+                inputs[i].style.background = '#fef2f2';
+            } else {
+                inputs[i].style.borderColor = '#e2e8f0';
+                inputs[i].style.background = '';
+            }
             sum += v;
         }
         totalEl.textContent = sum;
+    }
+    function validateScores() {
+        for (var i = 0; i < inputs.length; i++) {
+            var v = parseInt(inputs[i].value) || 0;
+            var max = parseInt(inputs[i].max) || 0;
+            if (v > max) {
+                alert('第' + (i + 1) + '题得分（' + v + '）超过了分值上限（' + max + '），请修改后再提交。');
+                inputs[i].focus();
+                return false;
+            }
+        }
+        return true;
     }
     for (var i = 0; i < inputs.length; i++) {
         inputs[i].addEventListener('input', updateTotal);
     }
     updateTotal();
     window.saveGrade = function() {
+        if (!validateScores()) return;
         document.getElementById('finalizeInput').value = 'false';
         document.getElementById('gradeForm').submit();
     };
     window.submitGrade = function() {
+        if (!validateScores()) return;
         if (!confirm('提交后学生将能看到成绩，确定提交吗？')) return;
         document.getElementById('finalizeInput').value = 'true';
         document.getElementById('gradeForm').submit();
