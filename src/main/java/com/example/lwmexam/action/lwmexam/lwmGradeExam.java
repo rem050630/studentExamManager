@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 @WebServlet("/lwmGradeExam")
@@ -47,6 +48,14 @@ public class lwmGradeExam extends HttpServlet {
 
         lwmscoreDAO dao = new lwmscoreDAO();
         List<lwmStudentAnswer> answers = dao.lwmQueryAnswersByRecord(recordId);
+        answers.sort(Comparator.comparingInt(a -> {
+            String t = a.getLwmquestiontype();
+            if ("单选题".equals(t)) return 1;
+            if ("多选题".equals(t)) return 2;
+            if ("判断题".equals(t)) return 3;
+            if ("简答题".equals(t)) return 4;
+            return 5;
+        }));
 
         // Auto-grade objective questions on first load (scores are 0)
         boolean needAutoScore = true;
