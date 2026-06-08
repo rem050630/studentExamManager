@@ -250,11 +250,26 @@ function saveDraft() {
 }
 
 // --- Sidebar ---
+// closest() polyfill for IE
+if (!Element.prototype.closest) {
+    Element.prototype.closest = function(selector) {
+        var el = this;
+        while (el && el.nodeType === 1) {
+            if (el.matches(selector)) return el;
+            el = el.parentElement;
+        }
+        return null;
+    };
+}
+
 var sidebarCollapsed = false;
 
 function scrollToQuestion(qid) {
     var el = document.getElementById('question_' + qid);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (el) {
+        try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        catch (e) { el.scrollIntoView(); }
+    }
 }
 
 function toggleSidebar() {
@@ -301,7 +316,7 @@ function initSidebar() {
         var card = cards[i];
         var id = card.id;
         if (!id || id.indexOf('question_') !== 0) continue;
-        var qid = parseInt(id.replace('question_', ''));
+        var qid = parseInt(id.replace('question_', ''), 10);
         updateSidebarButton(qid);
     }
 }
