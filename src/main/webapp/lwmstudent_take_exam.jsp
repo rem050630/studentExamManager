@@ -76,6 +76,7 @@
 </head>
 <body>
 <div class="container">
+    <div class="main-area">
     <div class="header">
         <h2><%= paper.getLwmpapername() %>
             <span class="timer" id="countdown">--:--:--</span>
@@ -107,7 +108,7 @@
                     String title = sectionTitles.getOrDefault(type, type); %>
                     <div class="section-title"><%= title %></div>
                 <% } %>
-            <div class="card">
+            <div class="card" id="question_<%= q.getLwmquestionid() %>">
                 <h3><%= num++ %>. <%= type %>（<%= maxScore %> 分）</h3>
                 <p style="margin-bottom:10px;font-size:0.95rem;"><%= q.getLwmquestioncontent() %></p>
 
@@ -142,6 +143,7 @@
             <button type="button" id="submitBtn" class="btn btn-submit" onclick="submitExam()">交卷</button>
         </div>
     </form>
+    </div><!-- .main-area -->
 </div>
 <script>
 var remainingSeconds = <%= remainingSeconds %>;
