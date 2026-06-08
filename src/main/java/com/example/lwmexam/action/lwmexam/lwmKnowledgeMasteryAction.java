@@ -3,6 +3,7 @@ package com.example.lwmexam.action.lwmexam;
 import com.example.lwmexam.dao.lwmexam.lwmMistakeBookDAO;
 import com.example.lwmexam.entity.lwmexam.lwmStudent;
 
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -14,14 +15,16 @@ import java.util.List;
 @WebServlet("/lwmKnowledgeMastery")
 public class lwmKnowledgeMasteryAction extends HttpServlet {
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         response.setContentType("application/json;charset=UTF-8");
         HttpSession session = request.getSession();
         lwmStudent student = (lwmStudent) session.getAttribute("student");
-        if (student == null) { response.getWriter().print("[]"); return; }
+        if (student == null) { response.sendRedirect("login.jsp"); return; }
 
-        int subjectId = Integer.parseInt(request.getParameter("subjectid"));
+        String subjectIdStr = request.getParameter("subjectid");
+        if (subjectIdStr == null || subjectIdStr.isEmpty()) { response.getWriter().print("[]"); return; }
+        int subjectId = Integer.parseInt(subjectIdStr);
         lwmMistakeBookDAO dao = new lwmMistakeBookDAO();
         List<String[]> data = dao.getKPMastery(student.getLwmstudentid(), subjectId);
 

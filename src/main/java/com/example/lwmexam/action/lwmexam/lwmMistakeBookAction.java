@@ -64,6 +64,17 @@ public class lwmMistakeBookAction extends HttpServlet {
         request.setAttribute("kpId", kpIdStr != null ? kpIdStr : "");
         request.setAttribute("reviewStatus", reviewStr != null ? reviewStr : "");
         request.setAttribute("fp", fp);
+        StringBuilder tj = new StringBuilder();
+        if (subjectIdStr != null && !subjectIdStr.isEmpty()) tj.append("subjectid=").append(subjectIdStr);
+        if (kpIdStr != null && !kpIdStr.isEmpty()) {
+            if (tj.length() > 0) tj.append("&");
+            tj.append("kpid=").append(kpIdStr);
+        }
+        if (reviewStr != null && !reviewStr.isEmpty()) {
+            if (tj.length() > 0) tj.append("&");
+            tj.append("reviewstatus=").append(reviewStr);
+        }
+        request.setAttribute("tj", tj.toString());
         request.getRequestDispatcher("lwmstudent_mistakebook.jsp").forward(request, response);
     }
 
