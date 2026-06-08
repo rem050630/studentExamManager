@@ -76,6 +76,41 @@
 </head>
 <body>
 <div class="container">
+	<div class="sidebar" id="answerSidebar">
+	    <div class="sidebar-header">
+	        <span>答题卡</span>
+	        <button onclick="toggleSidebar()" id="sidebarToggleBtn" title="收起答题卡">&minus;</button>
+	    </div>
+	    <div class="sidebar-body">
+	        <%
+	        if (questions != null) {
+	            String sidebarType = "";
+	            int sidebarNum = 0;
+	            boolean firstSection = true;
+	            for (lwmExamQuestion q : questions) {
+	                String type = q.getLwmquestiontype();
+	                if (!type.equals(sidebarType)) {
+	                    if (!firstSection) { %></div><% }
+	                    firstSection = false;
+	                    sidebarType = type;
+	                    sidebarNum = 1;
+	        %>
+	                    <div class="sidebar-section-label"><%= sidebarType %></div>
+	                    <div class="sidebar-btn-grid">
+	        <%      }
+	                int qid = q.getLwmquestionid();
+	                boolean initAnswered = false;
+	                if (draftAnswers != null) {
+	                    String saved = draftAnswers.get(qid);
+	                    if (saved != null && !saved.trim().isEmpty()) initAnswered = true;
+	                }
+	        %>
+	                <button class="sidebar-btn<%= initAnswered ? " answered" : "" %>" data-qid="<%= qid %>" onclick="scrollToQuestion(<%= qid %>)"><%= sidebarNum++ %></button>
+	        <%  }
+	            if (!firstSection) { %></div><% }
+	        } %>
+	    </div>
+	</div>
     <div class="main-area">
     <div class="header">
         <h2><%= paper.getLwmpapername() %>
