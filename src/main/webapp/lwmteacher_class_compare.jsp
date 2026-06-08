@@ -304,6 +304,24 @@ function startCompare() {
             document.getElementById('compareBtn').disabled = false;
             document.getElementById('compareBtn').textContent = '开始对比';
 
+            // Reset render flags so re-compare re-renders everything
+            coreMetricsRendered = false;
+            distRendered = false;
+            kpLoaded = false;
+
+            // Dispose old chart instances
+            if (coreChartInst) { coreChartInst.dispose(); coreChartInst = null; }
+            if (distChartInst) { distChartInst.dispose(); distChartInst = null; }
+            if (kpChartInst) { kpChartInst.dispose(); kpChartInst = null; }
+
+            // Clear old table content
+            document.getElementById('coreTable').innerHTML = '';
+            document.getElementById('distChart').innerHTML = '';
+            document.getElementById('kpChart').innerHTML = '';
+            document.getElementById('kpChart').style.display = 'block';
+            document.getElementById('kpEmpty').style.display = 'none';
+            document.getElementById('kpLoading').style.display = 'none';
+
             if (!data || data.length === 0) {
                 document.getElementById('tabsContainer').style.display = 'none';
                 document.getElementById('noData').style.display = 'block';
