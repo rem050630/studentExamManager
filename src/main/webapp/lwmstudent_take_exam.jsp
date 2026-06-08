@@ -40,7 +40,8 @@
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:'Inter',sans-serif; background:#f0f2f5; padding:24px; }
-        .container { max-width:900px; margin:0 auto; }
+        .container { max-width:1080px; margin:0 auto; display:flex; gap:20px; align-items:flex-start; }
+        .main-area { flex:1; min-width:0; }
         .header { background:linear-gradient(135deg,#f59e0b,#d97706); color:white; padding:24px; border-radius:16px; margin-bottom:20px; }
         .header h2 { margin-bottom:8px; }
         .header p { opacity:0.8; font-size:0.9rem; }
@@ -57,6 +58,20 @@
         .timer-warning { background:rgba(220,38,38,0.8) !important; animation: pulse 1s infinite; }
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
         .section-title { font-size:1.1rem; font-weight:700; color:#1e293b; padding:16px 0 8px 0; margin-top:8px; border-bottom:2px solid #e2e8f0; margin-bottom:12px; }
+        .sidebar { width:210px; flex-shrink:0; background:white; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.08); position:sticky; top:24px; max-height:calc(100vh - 48px); overflow-y:auto; transition:width 0.3s ease; }
+        .sidebar-header { background:linear-gradient(135deg,#f59e0b,#d97706); color:white; padding:10px 14px; border-radius:12px 12px 0 0; display:flex; justify-content:space-between; align-items:center; font-size:0.9rem; font-weight:600; }
+        .sidebar-header button { background:none; border:none; color:white; font-size:1.2rem; cursor:pointer; padding:0 4px; line-height:1; }
+        .sidebar-body { padding:10px 14px 14px 14px; }
+        .sidebar-section-label { font-size:0.75rem; color:#94a3b8; margin:8px 0 4px 0; }
+        .sidebar-section-label:first-child { margin-top:0; }
+        .sidebar-btn-grid { display:flex; flex-wrap:wrap; gap:6px; }
+        .sidebar-btn { width:28px; height:28px; border-radius:8px; border:none; background:#e2e8f0; color:#64748b; font-size:0.8rem; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:transform 0.15s,background 0.2s; }
+        .sidebar-btn:hover { transform:scale(1.1); }
+        .sidebar-btn.answered { background:#22c55e; color:white; }
+        .sidebar.collapsed { width:40px; }
+        .sidebar.collapsed .sidebar-body { display:none; }
+        .sidebar.collapsed .sidebar-header { border-radius:12px; flex-direction:column; gap:6px; padding:10px 8px; }
+        .sidebar.collapsed .sidebar-header span { writing-mode:vertical-rl; font-size:0.8rem; }
     </style>
 </head>
 <body>
