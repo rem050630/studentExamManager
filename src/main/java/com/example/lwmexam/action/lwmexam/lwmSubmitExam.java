@@ -94,6 +94,9 @@ public class lwmSubmitExam extends HttpServlet {
         java.util.Set<Integer> allQIds = new java.util.HashSet<>(pDao.lwmGetPaperQuestionIds(paperId));
         saveAnswers(request, recordId, student.getLwmstudentid(), paperId, allQIds);
 
+        // Auto-record mistakes
+        recordMistakes(student.getLwmstudentid(), paperId);
+
         if (isAutoSubmit) {
             out.println("<script>alert('考试时间到，系统已自动交卷');location.href='lwmstudent_main.jsp';</script>");
         } else {
@@ -128,5 +131,35 @@ public class lwmSubmitExam extends HttpServlet {
             }
         } catch (Exception e) { e.printStackTrace(); }
         db2.close();
+    }
+
+    private void recordMistakes(int studentId, int paperId) {
+        com.example.lwmexam.dao.lwmexam.lwmpaperDAO pDao = new com.example.lwmexam.dao.lwmexam.lwmpaperDAO();
+        com.example.lwmexam.entity.lwmexam.lwmExamPaper paper = pDao.lwmQueryPaperById(paperId);
+        if (paper == null) return;
+
+        com.example.lwmexam.dao.lwmexam.lwmMistakeBookDAO mbDao = new com.example.lwmexam.dao.lwmexam.lwmMistakeBookDAO();
+        com.example.lwmexam.service.lwmexam.MysqlConn db = new com.example.lwmexam.service.lwmexam.MysqlConn();
+        try {
+            java.sql.ResultSet rs = db.doQuery(
+                "SELECT sa.lwmquestionid, sa.lwmquestionscore, q.lwmquestiontype " +
+                "FROM lwmstudentanswer sa JOIN lwmexamquestion q ON sa.lwmquestionid = q.lwmquestionid " +
+                "WHERE sa.lwmrecordid = (SELECT MAX(lwmrecordid) FROM lwmexamrecord WHERE lwmpaperid = ? AND lwmstudentid = ?)",
+                new Object[]{paperId, studentId});
+            while (rs.next()) {
+                String type = rs.getString("lwmquestiontype");
+                int score = rs.getInt("lwmquestionscore");
+                int maxScore = 0;
+                if ("单选题".equals(type)) maxScore = paper.getLwmdanxscore();
+                else if ("多选题".equals(type)) maxScore = paper.getLwmduoxscore();
+                else if ("判断题".equals(type)) maxScore = paper.getLwmpdscore();
+                else if ("简答题".equals(type)) maxScore = paper.getLwmjdscore();
+
+                boolean isWrong = score < maxScore;
+                int questionId = rs.getInt("lwmquestionid");
+                mbDao.upsertMistake(studentId, questionId, isWrong);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        db.close();
     }
 }

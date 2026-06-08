@@ -97,6 +97,39 @@ public class lwmSaveExamDraft extends HttpServlet {
         } catch (Exception e) { e.printStackTrace(); }
         db.close();
 
+        // Auto-record mistakes
+        recordMistakes(student.getLwmstudentid(), paperId);
+
         response.sendRedirect("lwmstudent_main.jsp");
+    }
+
+    private void recordMistakes(int studentId, int paperId) {
+        com.example.lwmexam.dao.lwmexam.lwmpaperDAO pDao = new com.example.lwmexam.dao.lwmexam.lwmpaperDAO();
+        com.example.lwmexam.entity.lwmexam.lwmExamPaper paper = pDao.lwmQueryPaperById(paperId);
+        if (paper == null) return;
+
+        com.example.lwmexam.dao.lwmexam.lwmMistakeBookDAO mbDao = new com.example.lwmexam.dao.lwmexam.lwmMistakeBookDAO();
+        com.example.lwmexam.service.lwmexam.MysqlConn db = new com.example.lwmexam.service.lwmexam.MysqlConn();
+        try {
+            java.sql.ResultSet rs = db.doQuery(
+                "SELECT sa.lwmquestionid, sa.lwmquestionscore, q.lwmquestiontype " +
+                "FROM lwmstudentanswer sa JOIN lwmexamquestion q ON sa.lwmquestionid = q.lwmquestionid " +
+                "WHERE sa.lwmrecordid = (SELECT MAX(lwmrecordid) FROM lwmexamrecord WHERE lwmpaperid = ? AND lwmstudentid = ?)",
+                new Object[]{paperId, studentId});
+            while (rs.next()) {
+                String type = rs.getString("lwmquestiontype");
+                int score = rs.getInt("lwmquestionscore");
+                int maxScore = 0;
+                if ("单选题".equals(type)) maxScore = paper.getLwmdanxscore();
+                else if ("多选题".equals(type)) maxScore = paper.getLwmduoxscore();
+                else if ("判断题".equals(type)) maxScore = paper.getLwmpdscore();
+                else if ("简答题".equals(type)) maxScore = paper.getLwmjdscore();
+
+                boolean isWrong = score < maxScore;
+                int questionId = rs.getInt("lwmquestionid");
+                mbDao.upsertMistake(studentId, questionId, isWrong);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        db.close();
     }
 }
