@@ -1,12 +1,16 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page import="java.util.List" %>
 <%@ page import="com.example.lwmexam.entity.lwmexam.lwmExamQuestion" %>
 <%@ page import="com.example.lwmexam.entity.lwmexam.lwmstudentcourseteacher" %>
+<%@ page import="com.example.lwmexam.dao.lwmexam.lwmKnowledgePointDAO" %>
 <%
     List<lwmExamQuestion> questions = (List<lwmExamQuestion>) request.getAttribute("questions");
     List<lwmstudentcourseteacher> courses = (List<lwmstudentcourseteacher>) request.getAttribute("courses");
+    List<String[]> subjectList = (List<String[]>) request.getAttribute("subjectList");
     String questiontype = (String) request.getAttribute("questiontype");
     String keyword = (String) request.getAttribute("keyword");
+    String selectedSubjectId = (String) request.getAttribute("selectedSubjectId");
 %>
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -41,6 +45,13 @@
         <a href="lwmteacher_question_add.jsp" class="btn btn-primary">+ 添加试题</a>
     </div>
     <form class="filter-bar" method="get" action="lwmQueryQuestion">
+        <select name="subjectid">
+            <option value="">全部科目</option>
+            <% if (subjectList != null) {
+                for (String[] sub : subjectList) { %>
+                    <option value="<%= sub[0] %>" <%= sub[0].equals(selectedSubjectId) ? "selected" : "" %>><%= sub[1] %></option>
+            <% } } %>
+        </select>
         <select name="questiontype">
             <option value="">全部题型</option>
             <option value="单选题" <%= "单选题".equals(questiontype) ? "selected" : "" %>>单选题</option>
@@ -53,18 +64,22 @@
     </form>
     <table>
         <thead>
-            <tr><th>序号</th><th>科目</th><th>题型</th><th>题目内容</th><th>正确答案</th><th>操作</th></tr>
+            <tr><th>序号</th><th>科目</th><th>题型</th><th>题目内容</th><th>正确答案</th><th>知识点</th><th>操作</th></tr>
         </thead>
         <tbody>
             <% if (questions != null && !questions.isEmpty()) {
                 int i = 1;
-                for (lwmExamQuestion q : questions) { %>
+                for (lwmExamQuestion q : questions) {
+                    lwmKnowledgePointDAO kpDao = new lwmKnowledgePointDAO();
+                    String kpNames = kpDao.getKPNamesByQuestion(q.getLwmquestionid());
+                %>
                     <tr>
                         <td><%= i++ %></td>
                         <td><%= q.getLwmsubjectname() != null ? q.getLwmsubjectname() : q.getLwmsubjectid() %></td>
                         <td><%= q.getLwmquestiontype() %></td>
                         <td class="content"><%= q.getLwmquestioncontent() %></td>
                         <td><%= q.getLwmcorrectanswer() %></td>
+                        <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= kpNames %>"><%= kpNames.isEmpty() ? "--" : kpNames %></td>
                         <td>
                             <a href="lwmUpdateQuestion?id=<%= q.getLwmquestionid() %>" class="btn-edit">编辑</a>
                             <a href="lwmDeleteQuestion?id=<%= q.getLwmquestionid() %>" class="btn-delete" onclick="return confirm('确定删除该试题？')">删除</a>
@@ -72,10 +87,11 @@
                     </tr>
                 <% }
             } else { %>
-                <tr><td colspan="6" class="empty">暂无试题</td></tr>
+                <tr><td colspan="7" class="empty">暂无试题</td></tr>
             <% } %>
         </tbody>
     </table>
+    <jsp:include page="lwmfoot.jsp"></jsp:include>
 </div>
 </body>
 </html>

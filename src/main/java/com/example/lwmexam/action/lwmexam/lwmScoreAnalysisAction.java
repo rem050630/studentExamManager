@@ -28,6 +28,8 @@ public class lwmScoreAnalysisAction extends HttpServlet {
         String paperIdStr = request.getParameter("paperid");
         String classname = request.getParameter("classname");
         String subjectIdStr = request.getParameter("subjectid");
+        String action = request.getParameter("action");
+        String classnamesParam = request.getParameter("classnames");
 
         Integer paperId = (paperIdStr != null && !paperIdStr.isEmpty()) ? Integer.parseInt(paperIdStr) : null;
         Integer subjectId = (subjectIdStr != null && !subjectIdStr.isEmpty()) ? Integer.parseInt(subjectIdStr) : null;
@@ -82,6 +84,124 @@ public class lwmScoreAnalysisAction extends HttpServlet {
             rs.close();
         } catch (Exception e) { e.printStackTrace(); }
         db.close();
+
+        // --- Compare mode: multi-class comparison ---
+        if ("compare".equals(action) && classnamesParam != null && !classnamesParam.trim().isEmpty() && paperId != null) {
+            String[] classNames = classnamesParam.split(",");
+            List<Map<String, Object>> compareData = new ArrayList<>();
+
+            for (String cn : classNames) {
+                String cls = cn.trim();
+                if (cls.isEmpty()) continue;
+
+                Map<String, Object> classStats = new LinkedHashMap<>();
+                classStats.put("classname", cls);
+
+                db = new MysqlConn();
+                try {
+                    // Count + avg + max + min
+                    rs = db.doQuery(
+                        "SELECT COUNT(*) AS cnt, IFNULL(AVG(sc.lwmtotalscore), 0) AS avg, " +
+                        "IFNULL(MAX(sc.lwmtotalscore), 0) AS max, IFNULL(MIN(sc.lwmtotalscore), 0) AS min " +
+                        "FROM lwmexamscore sc " +
+                        "JOIN lwmexamrecord r ON sc.lwmrecordid = r.lwmrecordid " +
+                        "JOIN lwmstudent s ON sc.lwmstudentid = s.lwmstudentid " +
+                        "WHERE sc.lwmpaperid = ? AND s.lwmclassname = ?",
+                        new Object[]{paperId, cls});
+                    int cnt = 0;
+                    double avg = 0;
+                    int max = 0;
+                    int min = 0;
+                    if (rs.next()) {
+                        cnt = rs.getInt("cnt");
+                        avg = rs.getDouble("avg");
+                        max = rs.getInt("max");
+                        min = rs.getInt("min");
+                    }
+                    rs.close();
+                    classStats.put("count", cnt);
+                    classStats.put("avg", avg);
+                    classStats.put("max", max);
+                    classStats.put("min", min);
+
+                    // Pass rate and excellence rate
+                    rs = db.doQuery(
+                        "SELECT " +
+                        "SUM(CASE WHEN sc.lwmtotalscore >= 60 THEN 1 ELSE 0 END) AS pass_count, " +
+                        "SUM(CASE WHEN sc.lwmtotalscore >= 90 THEN 1 ELSE 0 END) AS excel_count " +
+                        "FROM lwmexamscore sc " +
+                        "JOIN lwmexamrecord r ON sc.lwmrecordid = r.lwmrecordid " +
+                        "JOIN lwmstudent s ON sc.lwmstudentid = s.lwmstudentid " +
+                        "WHERE sc.lwmpaperid = ? AND s.lwmclassname = ?",
+                        new Object[]{paperId, cls});
+                    double passRate = 0;
+                    double excellenceRate = 0;
+                    if (rs.next()) {
+                        int passCount = rs.getInt("pass_count");
+                        int excelCount = rs.getInt("excel_count");
+                        passRate = cnt > 0 ? (double) passCount / cnt * 100.0 : 0;
+                        excellenceRate = cnt > 0 ? (double) excelCount / cnt * 100.0 : 0;
+                    }
+                    rs.close();
+                    classStats.put("passRate", passRate);
+                    classStats.put("excellenceRate", excellenceRate);
+
+                    // Distribution (5 brackets)
+                    rs = db.doQuery(
+                        "SELECT " +
+                        "SUM(CASE WHEN sc.lwmtotalscore < 60 THEN 1 ELSE 0 END) AS b0_59, " +
+                        "SUM(CASE WHEN sc.lwmtotalscore >= 60 AND sc.lwmtotalscore < 70 THEN 1 ELSE 0 END) AS b60_69, " +
+                        "SUM(CASE WHEN sc.lwmtotalscore >= 70 AND sc.lwmtotalscore < 80 THEN 1 ELSE 0 END) AS b70_79, " +
+                        "SUM(CASE WHEN sc.lwmtotalscore >= 80 AND sc.lwmtotalscore < 90 THEN 1 ELSE 0 END) AS b80_89, " +
+                        "SUM(CASE WHEN sc.lwmtotalscore >= 90 THEN 1 ELSE 0 END) AS b90_100 " +
+                        "FROM lwmexamscore sc " +
+                        "JOIN lwmexamrecord r ON sc.lwmrecordid = r.lwmrecordid " +
+                        "JOIN lwmstudent s ON sc.lwmstudentid = s.lwmstudentid " +
+                        "WHERE sc.lwmpaperid = ? AND s.lwmclassname = ?",
+                        new Object[]{paperId, cls});
+                    int[] dist = new int[5];
+                    if (rs.next()) {
+                        dist[0] = rs.getInt("b0_59");
+                        dist[1] = rs.getInt("b60_69");
+                        dist[2] = rs.getInt("b70_79");
+                        dist[3] = rs.getInt("b80_89");
+                        dist[4] = rs.getInt("b90_100");
+                    }
+                    rs.close();
+                    classStats.put("dist", dist);
+                } catch (Exception e) { e.printStackTrace(); }
+                db.close();
+
+                compareData.add(classStats);
+            }
+
+            // Return JSON for AJAX requests
+            response.setContentType("application/json;charset=UTF-8");
+            StringBuilder json = new StringBuilder("[");
+            for (int i = 0; i < compareData.size(); i++) {
+                Map<String, Object> m = compareData.get(i);
+                json.append("{");
+                json.append("\"classname\":\"").append(escapeJson((String) m.get("classname"))).append("\",");
+                json.append("\"count\":").append(m.get("count")).append(",");
+                json.append("\"avg\":").append(String.format("%.1f", m.get("avg"))).append(",");
+                json.append("\"max\":").append(m.get("max")).append(",");
+                json.append("\"min\":").append(m.get("min")).append(",");
+                json.append("\"passRate\":").append(String.format("%.1f", m.get("passRate"))).append(",");
+                json.append("\"excellenceRate\":").append(String.format("%.1f", m.get("excellenceRate"))).append(",");
+                json.append("\"dist\":[");
+                int[] dist = (int[]) m.get("dist");
+                for (int j = 0; j < dist.length; j++) {
+                    if (j > 0) json.append(",");
+                    json.append(dist[j]);
+                }
+                json.append("]");
+                json.append("}");
+                if (i < compareData.size() - 1) json.append(",");
+            }
+            json.append("]");
+            response.getWriter().print(json.toString());
+            return;
+        }
 
         // Query score stats if paperId is provided
         Map<String, Object> stats = null;
@@ -210,5 +330,22 @@ public class lwmScoreAnalysisAction extends HttpServlet {
         request.setAttribute("passRate", passRate);
         request.setAttribute("studentScores", studentScores);
         request.getRequestDispatcher("lwmteacher_score_analysis.jsp").forward(request, response);
+    }
+
+    private String escapeJson(String s) {
+        if (s == null) return "";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+                case '"': sb.append("\\\""); break;
+                case '\\': sb.append("\\\\"); break;
+                case '\n': sb.append("\\n"); break;
+                case '\r': sb.append("\\r"); break;
+                case '\t': sb.append("\\t"); break;
+                default: sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 }
