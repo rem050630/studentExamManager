@@ -249,6 +249,87 @@ function saveDraft() {
     form.submit();
 }
 
+// --- Sidebar ---
+var sidebarCollapsed = false;
+
+function scrollToQuestion(qid) {
+    var el = document.getElementById('question_' + qid);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function toggleSidebar() {
+    var sidebar = document.getElementById('answerSidebar');
+    var btn = document.getElementById('sidebarToggleBtn');
+    sidebarCollapsed = !sidebarCollapsed;
+    if (sidebarCollapsed) {
+        sidebar.classList.add('collapsed');
+        btn.innerHTML = '+';
+        btn.title = '展开答题卡';
+    } else {
+        sidebar.classList.remove('collapsed');
+        btn.innerHTML = '&minus;';
+        btn.title = '收起答题卡';
+    }
+}
+
+function updateSidebarButton(qid) {
+    var btn = document.querySelector('.sidebar-btn[data-qid="' + qid + '"]');
+    if (!btn) return;
+    var card = document.getElementById('question_' + qid);
+    if (!card) return;
+    var radios = card.querySelectorAll('input[type="radio"]');
+    var checkboxes = card.querySelectorAll('input[type="checkbox"]');
+    var textarea = card.querySelector('textarea');
+    var answered = false;
+    if (radios.length > 0) {
+        for (var i = 0; i < radios.length; i++) { if (radios[i].checked) { answered = true; break; } }
+    } else if (checkboxes.length > 0) {
+        for (var i = 0; i < checkboxes.length; i++) { if (checkboxes[i].checked) { answered = true; break; } }
+    } else if (textarea) {
+        answered = textarea.value.trim() !== '';
+    }
+    if (answered) {
+        btn.classList.add('answered');
+    } else {
+        btn.classList.remove('answered');
+    }
+}
+
+function initSidebar() {
+    var cards = document.querySelectorAll('.card');
+    for (var i = 0; i < cards.length; i++) {
+        var card = cards[i];
+        var id = card.id;
+        if (!id || id.indexOf('question_') !== 0) continue;
+        var qid = parseInt(id.replace('question_', ''));
+        updateSidebarButton(qid);
+    }
+}
+
+// Event delegation: listen on form for all input/textarea changes
+document.getElementById('examForm').addEventListener('change', function(e) {
+    var target = e.target;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        var card = target.closest('.card');
+        if (card && card.id && card.id.indexOf('question_') === 0) {
+            var qid = parseInt(card.id.replace('question_', ''));
+            updateSidebarButton(qid);
+        }
+    }
+});
+
+document.getElementById('examForm').addEventListener('input', function(e) {
+    if (e.target.tagName === 'TEXTAREA') {
+        var card = e.target.closest('.card');
+        if (card && card.id && card.id.indexOf('question_') === 0) {
+            var qid = parseInt(card.id.replace('question_', ''));
+            updateSidebarButton(qid);
+        }
+    }
+});
+
+initSidebar();
+
 updateTimer();
 </script>
 </body>
