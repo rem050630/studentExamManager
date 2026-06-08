@@ -4,6 +4,7 @@
 <%@ page import="com.example.lwmexam.entity.lwmexam.lwmKnowledgePoint" %>
 <%@ page import="com.example.lwmexam.service.lwmexam.Fpage" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.net.URLEncoder" %>
 <%
     lwmStudent student = (lwmStudent) session.getAttribute("student");
     if (student == null) { response.sendRedirect("login.jsp"); return; }
@@ -192,17 +193,17 @@
             <% if (fp != null && fp.getPageCount() > 1) { %>
             <div class="pagination">
                 <% if (fp.getPageNow() > 0) { %>
-                    <a href="lwmMistakeBook?page=<%= fp.getPageNow() - 1 %>&subjectid=<%= subjectId %>&kpid=<%= kpId %>&reviewstatus=<%= reviewStatus %>">上一页</a>
+                    <a href="lwmMistakeBook?page=<%= fp.getPageNow() - 1 %>&subjectid=<%= subjectId != null ? java.net.URLEncoder.encode(subjectId, "UTF-8") : "" %>&kpid=<%= kpId != null ? java.net.URLEncoder.encode(kpId, "UTF-8") : "" %>&reviewstatus=<%= reviewStatus != null ? java.net.URLEncoder.encode(reviewStatus, "UTF-8") : "" %>">上一页</a>
                 <% } %>
                 <% for (int i = 0; i < fp.getPageCount(); i++) { %>
                     <% if (i == fp.getPageNow()) { %>
                         <span class="current"><%= i + 1 %></span>
                     <% } else { %>
-                        <a href="lwmMistakeBook?page=<%= i %>&subjectid=<%= subjectId %>&kpid=<%= kpId %>&reviewstatus=<%= reviewStatus %>"><%= i + 1 %></a>
+                        <a href="lwmMistakeBook?page=<%= i %>&subjectid=<%= subjectId != null ? java.net.URLEncoder.encode(subjectId, "UTF-8") : "" %>&kpid=<%= kpId != null ? java.net.URLEncoder.encode(kpId, "UTF-8") : "" %>&reviewstatus=<%= reviewStatus != null ? java.net.URLEncoder.encode(reviewStatus, "UTF-8") : "" %>"><%= i + 1 %></a>
                     <% } %>
                 <% } %>
                 <% if (fp.getPageNow() < fp.getPageCount() - 1) { %>
-                    <a href="lwmMistakeBook?page=<%= fp.getPageNow() + 1 %>&subjectid=<%= subjectId %>&kpid=<%= kpId %>&reviewstatus=<%= reviewStatus %>">下一页</a>
+                    <a href="lwmMistakeBook?page=<%= fp.getPageNow() + 1 %>&subjectid=<%= subjectId != null ? java.net.URLEncoder.encode(subjectId, "UTF-8") : "" %>&kpid=<%= kpId != null ? java.net.URLEncoder.encode(kpId, "UTF-8") : "" %>&reviewstatus=<%= reviewStatus != null ? java.net.URLEncoder.encode(reviewStatus, "UTF-8") : "" %>">下一页</a>
                 <% } %>
             </div>
             <% } %>
@@ -265,7 +266,10 @@ function loadRadar() {
             document.getElementById('radarEmpty').style.display = 'none';
             document.getElementById('radarChart').style.display = 'block';
             document.getElementById('radarTable').style.display = '';
-            var chart = echarts.init(document.getElementById('radarChart'));
+            var dom = document.getElementById('radarChart');
+            if (dom._echart) dom._echart.dispose();
+            var chart = echarts.init(dom);
+            dom._echart = chart;
             chart.setOption({
                 radar: {
                     indicator: data.map(function(d) { return {name: d.kpname, max: 1}; }),
