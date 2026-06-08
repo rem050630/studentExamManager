@@ -15,8 +15,9 @@
 
     lwmCourseArrangeDAO arrangeDao = new lwmCourseArrangeDAO();
     List<lwmstudentcourseteacher> courses = arrangeDao.lwmQuerySomeSct(
-        "SELECT sct.*, sub.lwmsubjectname FROM lwmstudentcourseteacher sct " +
+        "SELECT sct.*, sub.lwmsubjectname, tea.lwmteachername FROM lwmstudentcourseteacher sct " +
         "LEFT JOIN lwmexamsubject sub ON sct.lwmsubjectid = sub.lwmsubjectid " +
+        "LEFT JOIN lwmteacher tea ON sct.lwmteacherid = tea.lwmteacherid " +
         "WHERE sct.lwmteacherid = ? ORDER BY sub.lwmsubjectname",
         new Object[]{teacher.getLwmteacherid()});
 
