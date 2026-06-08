@@ -327,7 +327,7 @@ document.getElementById('examForm').addEventListener('change', function(e) {
     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
         var card = target.closest('.card');
         if (card && card.id && card.id.indexOf('question_') === 0) {
-            var qid = parseInt(card.id.replace('question_', ''));
+            var qid = parseInt(card.id.replace('question_', ''), 10);
             updateSidebarButton(qid);
         }
     }
@@ -337,7 +337,7 @@ document.getElementById('examForm').addEventListener('input', function(e) {
     if (e.target.tagName === 'TEXTAREA') {
         var card = e.target.closest('.card');
         if (card && card.id && card.id.indexOf('question_') === 0) {
-            var qid = parseInt(card.id.replace('question_', ''));
+            var qid = parseInt(card.id.replace('question_', ''), 10);
             updateSidebarButton(qid);
         }
     }
