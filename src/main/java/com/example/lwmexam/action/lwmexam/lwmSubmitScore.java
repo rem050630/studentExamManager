@@ -91,6 +91,9 @@ public class lwmSubmitScore extends HttpServlet {
         examScore.setLwmpaperid(paperId);
         dao.lwmSaveScore(examScore);
 
+        // Auto-record mistakes now that scores are finalized
+        recordMistakes(studentId, paperId, recordId, paper);
+
         // Only set status to 2 when teacher explicitly clicks "提交成绩"
         if (finalize) {
             try {
@@ -108,5 +111,31 @@ public class lwmSubmitScore extends HttpServlet {
         } else {
             out.println("<script>alert('评分已保存，总分：" + totalScore + "（尚未提交成绩）');location.href='lwmQueryExamRecords';</script>");
         }
+    }
+
+    private void recordMistakes(int studentId, int paperId, int recordId, lwmExamPaper paper) {
+        com.example.lwmexam.dao.lwmexam.lwmMistakeBookDAO mbDao = new com.example.lwmexam.dao.lwmexam.lwmMistakeBookDAO();
+        com.example.lwmexam.service.lwmexam.MysqlConn db = new com.example.lwmexam.service.lwmexam.MysqlConn();
+        try {
+            java.sql.ResultSet rs = db.doQuery(
+                "SELECT sa.lwmquestionid, sa.lwmquestionscore, q.lwmquestiontype " +
+                "FROM lwmstudentanswer sa JOIN lwmexamquestion q ON sa.lwmquestionid = q.lwmquestionid " +
+                "WHERE sa.lwmrecordid = ?",
+                new Object[]{recordId});
+            while (rs.next()) {
+                String type = rs.getString("lwmquestiontype");
+                int score = rs.getInt("lwmquestionscore");
+                int maxScore = 0;
+                if ("单选题".equals(type)) maxScore = paper.getLwmdanxscore();
+                else if ("多选题".equals(type)) maxScore = paper.getLwmduoxscore();
+                else if ("判断题".equals(type)) maxScore = paper.getLwmpdscore();
+                else if ("简答题".equals(type)) maxScore = paper.getLwmjdscore();
+
+                boolean isWrong = score < maxScore;
+                int questionId = rs.getInt("lwmquestionid");
+                mbDao.upsertMistake(studentId, questionId, isWrong);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        db.close();
     }
 }
