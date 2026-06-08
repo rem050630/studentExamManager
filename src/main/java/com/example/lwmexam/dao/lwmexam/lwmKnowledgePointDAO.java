@@ -22,7 +22,7 @@ public class lwmKnowledgePointDAO {
                 kp.setLwmsubjectid(rs.getInt("lwmsubjectid"));
                 kp.setLwmkpname(rs.getString("lwmkpname"));
                 kp.setLwmkpdesc(rs.getString("lwmkpdesc"));
-                try { kp.setLwmsubjectname(rs.getString("lwmsubjectname")); } catch (Exception ignored) {}
+                try { kp.setLwmsubjectname(rs.getString("lwmsubjectname")); } catch (java.sql.SQLException ignored) {}
                 list.add(kp);
             }
         } catch (Exception e) { e.printStackTrace(); }
@@ -73,11 +73,10 @@ public class lwmKnowledgePointDAO {
         db.close();
         if (kpIds != null && kpIds.length > 0) {
             for (int kpId : kpIds) {
-                db = new MysqlConn();
                 db.doUpdate("INSERT INTO lwmquestionknowledge(lwmquestionid,lwmkpid) VALUES(?,?)",
                     new Object[]{questionId, kpId});
-                db.close();
             }
+            db.close();
         }
     }
 
