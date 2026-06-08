@@ -154,11 +154,22 @@ var classNames = [];
 var coreChartInst = null;
 var distChartInst = null;
 var kpChartInst = null;
+var allPaperOptions = [];
 
 // Initialize on page load
 window.addEventListener('DOMContentLoaded', function() {
-    onSubjectChange();
+    // Cache all paper options (skip the placeholder at index 0)
     var paperSel = document.getElementById('paperSelect');
+    allPaperOptions = [];
+    for (var i = 1; i < paperSel.options.length; i++) {
+        allPaperOptions.push({
+            value: paperSel.options[i].value,
+            text: paperSel.options[i].text,
+            subject: paperSel.options[i].getAttribute('data-subject'),
+            classes: paperSel.options[i].getAttribute('data-classes')
+        });
+    }
+    onSubjectChange();
     if (paperSel.value) {
         onPaperChange();
     }
@@ -176,22 +187,40 @@ window.addEventListener('DOMContentLoaded', function() {
 function onSubjectChange() {
     var subId = document.getElementById('subjectSelect').value;
     var paperSel = document.getElementById('paperSelect');
-    var opts = paperSel.options;
-    for (var i = 0; i < opts.length; i++) {
-        if (opts[i].value === '') continue;
-        var paperSub = opts[i].getAttribute('data-subject');
-        if (subId === '' || paperSub === subId) {
-            opts[i].style.display = '';
-        } else {
-            opts[i].style.display = 'none';
+    var currentVal = paperSel.value;
+
+    // Clear dropdown
+    paperSel.innerHTML = '';
+
+    // Add placeholder
+    var placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = '-- 请选择试卷 --';
+    paperSel.appendChild(placeholder);
+
+    // Re-add matching options from cache
+    var foundCurrent = false;
+    for (var i = 0; i < allPaperOptions.length; i++) {
+        var opt = allPaperOptions[i];
+        if (subId === '' || opt.subject === subId) {
+            var el = document.createElement('option');
+            el.value = opt.value;
+            el.textContent = opt.text;
+            el.setAttribute('data-subject', opt.subject);
+            el.setAttribute('data-classes', opt.classes);
+            if (opt.value === currentVal) {
+                el.selected = true;
+                foundCurrent = true;
+            }
+            paperSel.appendChild(el);
         }
     }
-    if (paperSel.selectedIndex > 0) {
-        var selOpt = paperSel.options[paperSel.selectedIndex];
-        if (selOpt.style.display === 'none') {
-            paperSel.selectedIndex = 0;
-        }
+
+    // If previously selected paper is no longer in list, reset to placeholder
+    if (!foundCurrent) {
+        paperSel.selectedIndex = 0;
     }
+
     onPaperChange();
 }
 
