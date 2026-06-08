@@ -76,12 +76,25 @@ public class lwmScoreAnalysisAction extends HttpServlet {
             }
             rs.close();
 
-            // Load distinct class names for this teacher
+            // Load distinct class names for this teacher, splitting comma-separated values
             rs = db.doQuery(
                 "SELECT DISTINCT lwmclassname FROM lwmexampaper WHERE lwmteacherid = ? AND lwmclassname IS NOT NULL AND lwmclassname != '' ORDER BY lwmclassname",
                 new Object[]{teacher.getLwmteacherid()});
-            while (rs.next()) classList.add(rs.getString("lwmclassname"));
+            java.util.LinkedHashSet<String> classSet = new java.util.LinkedHashSet<>();
+            while (rs.next()) {
+                String raw = rs.getString("lwmclassname");
+                if (raw != null && !raw.isEmpty()) {
+                    String[] parts = raw.split(",");
+                    for (String part : parts) {
+                        String trimmed = part.trim();
+                        if (!trimmed.isEmpty()) {
+                            classSet.add(trimmed);
+                        }
+                    }
+                }
+            }
             rs.close();
+            classList.addAll(classSet);
         } catch (Exception e) { e.printStackTrace(); }
         db.close();
 
