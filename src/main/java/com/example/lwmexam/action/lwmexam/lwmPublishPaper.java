@@ -63,9 +63,35 @@ public class lwmPublishPaper extends HttpServlet {
             rs.close(); pstmt.close(); conn.close();
         } catch (Exception e) { e.printStackTrace(); }
 
+        // Check which published classes have submitted exams (cannot be unpublished)
+        Set<String> submittedClasses = new HashSet<>();
+        if (!publishedClasses.isEmpty()) {
+            try {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                Connection conn2 = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/lwmexam?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8",
+                    "root", "123456");
+                for (String cls : publishedClasses) {
+                    PreparedStatement pstmt2 = conn2.prepareStatement(
+                        "SELECT COUNT(*) FROM lwmexamrecord r " +
+                        "JOIN lwmstudent s ON r.lwmstudentid = s.lwmstudentid " +
+                        "WHERE r.lwmpaperid = ? AND s.lwmclassname = ? AND r.lwmsubmitstatus IN (1, 2)");
+                    pstmt2.setInt(1, paperId);
+                    pstmt2.setString(2, cls.trim());
+                    ResultSet rs2 = pstmt2.executeQuery();
+                    if (rs2.next() && rs2.getInt(1) > 0) {
+                        submittedClasses.add(cls);
+                    }
+                    rs2.close(); pstmt2.close();
+                }
+                conn2.close();
+            } catch (Exception e) { e.printStackTrace(); }
+        }
+
         request.setAttribute("paper", paper);
         request.setAttribute("teacherClasses", teacherClasses);
         request.setAttribute("publishedClasses", publishedClasses);
+        request.setAttribute("submittedClasses", submittedClasses);
         request.getRequestDispatcher("lwmteacher_paper_publish.jsp").forward(request, response);
     }
 
@@ -84,6 +110,62 @@ public class lwmPublishPaper extends HttpServlet {
         String classname = "";
         if (selectedClasses != null && selectedClasses.length > 0) {
             classname = String.join(",", selectedClasses);
+        }
+
+        // Check if any class being removed has submitted exam records
+        String currentClassname = "";
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection connCheck = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/lwmexam?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8",
+                "root", "123456");
+            PreparedStatement pstmtCheck = connCheck.prepareStatement(
+                "SELECT lwmclassname FROM lwmexampaper WHERE lwmpaperid = ?");
+            pstmtCheck.setInt(1, paperId);
+            ResultSet rsCheck = pstmtCheck.executeQuery();
+            if (rsCheck.next()) {
+                String cn = rsCheck.getString("lwmclassname");
+                if (cn != null) currentClassname = cn;
+            }
+            rsCheck.close(); pstmtCheck.close(); connCheck.close();
+        } catch (Exception e) { e.printStackTrace(); }
+
+        // Compute removed classes (were published before, not in new selection)
+        Set<String> oldSet = new HashSet<>();
+        if (currentClassname != null && !currentClassname.isEmpty()) {
+            oldSet.addAll(Arrays.asList(currentClassname.split(",")));
+        }
+        Set<String> newSet = new HashSet<>();
+        if (selectedClasses != null) {
+            newSet.addAll(Arrays.asList(selectedClasses));
+        }
+        Set<String> removedSet = new HashSet<>(oldSet);
+        removedSet.removeAll(newSet);
+
+        // Check each removed class for submitted records
+        if (!removedSet.isEmpty()) {
+            try {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                Connection connSub = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/lwmexam?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8",
+                    "root", "123456");
+                for (String cls : removedSet) {
+                    PreparedStatement pstmtSub = connSub.prepareStatement(
+                        "SELECT COUNT(*) FROM lwmexamrecord r " +
+                        "JOIN lwmstudent s ON r.lwmstudentid = s.lwmstudentid " +
+                        "WHERE r.lwmpaperid = ? AND s.lwmclassname = ? AND r.lwmsubmitstatus IN (1, 2)");
+                    pstmtSub.setInt(1, paperId);
+                    pstmtSub.setString(2, cls.trim());
+                    ResultSet rsSub = pstmtSub.executeQuery();
+                    if (rsSub.next() && rsSub.getInt(1) > 0) {
+                        rsSub.close(); pstmtSub.close(); connSub.close();
+                        out.println("<script>alert('班级 " + cls.trim() + " 已有学生完成考试，无法取消发布');history.go(-1);</script>");
+                        return;
+                    }
+                    rsSub.close(); pstmtSub.close();
+                }
+                connSub.close();
+            } catch (Exception e) { e.printStackTrace(); }
         }
 
         try {
