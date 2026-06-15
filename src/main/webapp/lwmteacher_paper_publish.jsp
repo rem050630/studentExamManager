@@ -53,6 +53,7 @@
                     boolean submitted = submittedClasses.contains(cls); %>
                     <label class="class-item <%= checked ? "selected" : "" %>" style="<%= submitted ? "opacity:0.7;" : "" %>">
                         <input type="checkbox" name="classes" value="<%= cls %>" <%= checked ? "checked" : "" %> <%= submitted ? "disabled" : "" %> onchange="this.parentElement.classList.toggle('selected', this.checked)">
+                        <%= submitted ? "<input type='hidden' name='classes' value='" + cls + "'>" : "" %>
                         <%= cls %> <%= submitted ? "<span style='color:#d97706;font-size:0.75rem;'>(已有提交)</span>" : "" %>
                     </label>
             <% } } else { %>
