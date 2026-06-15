@@ -98,6 +98,44 @@ public class lwmScoreAnalysisAction extends HttpServlet {
         } catch (Exception e) { e.printStackTrace(); }
         db.close();
 
+        // Load paper total score for dynamic pass/excel thresholds
+        int totalScore = 100;
+        int passLine  = (int)(totalScore * 0.6);
+        int b2End     = (int)(totalScore * 0.7);
+        int b3End     = (int)(totalScore * 0.8);
+        int excelLine = (int)(totalScore * 0.9);
+        String[] bracketLabels = new String[]{
+            "0-" + (passLine - 1),
+            passLine + "-" + (b2End - 1),
+            b2End + "-" + (b3End - 1),
+            b3End + "-" + (excelLine - 1),
+            excelLine + "-" + totalScore
+        };
+        if (paperId != null) {
+            // Load actual total score from paper
+            MysqlConn pdb = new MysqlConn();
+            try {
+                ResultSet prs = pdb.doQuery(
+                    "SELECT lwmexamsore FROM lwmexampaper WHERE lwmpaperid = ?",
+                    new Object[]{paperId});
+                if (prs.next()) totalScore = prs.getInt("lwmexamsore");
+                prs.close();
+            } catch (Exception e) { e.printStackTrace(); }
+            pdb.close();
+            // Recompute thresholds from actual total score
+            passLine  = (int)(totalScore * 0.6);
+            b2End     = (int)(totalScore * 0.7);
+            b3End     = (int)(totalScore * 0.8);
+            excelLine = (int)(totalScore * 0.9);
+            bracketLabels = new String[]{
+                "0-" + (passLine - 1),
+                passLine + "-" + (b2End - 1),
+                b2End + "-" + (b3End - 1),
+                b3End + "-" + (excelLine - 1),
+                excelLine + "-" + totalScore
+            };
+        }
+
         // --- Compare mode: multi-class comparison ---
         if ("compare".equals(action) && classnamesParam != null && !classnamesParam.trim().isEmpty() && paperId != null) {
             String[] classNames = classnamesParam.split(",");
@@ -140,8 +178,8 @@ public class lwmScoreAnalysisAction extends HttpServlet {
                     // Pass rate and excellence rate
                     rs = db.doQuery(
                         "SELECT " +
-                        "SUM(CASE WHEN sc.lwmtotalscore >= 60 THEN 1 ELSE 0 END) AS pass_count, " +
-                        "SUM(CASE WHEN sc.lwmtotalscore >= 90 THEN 1 ELSE 0 END) AS excel_count " +
+                        "SUM(CASE WHEN sc.lwmtotalscore >= " + passLine + " THEN 1 ELSE 0 END) AS pass_count, " +
+                        "SUM(CASE WHEN sc.lwmtotalscore >= " + excelLine + " THEN 1 ELSE 0 END) AS excel_count " +
                         "FROM lwmexamscore sc " +
                         "JOIN lwmexamrecord r ON sc.lwmrecordid = r.lwmrecordid " +
                         "JOIN lwmstudent s ON sc.lwmstudentid = s.lwmstudentid " +
@@ -162,11 +200,11 @@ public class lwmScoreAnalysisAction extends HttpServlet {
                     // Distribution (5 brackets)
                     rs = db.doQuery(
                         "SELECT " +
-                        "SUM(CASE WHEN sc.lwmtotalscore < 60 THEN 1 ELSE 0 END) AS b0_59, " +
-                        "SUM(CASE WHEN sc.lwmtotalscore >= 60 AND sc.lwmtotalscore < 70 THEN 1 ELSE 0 END) AS b60_69, " +
-                        "SUM(CASE WHEN sc.lwmtotalscore >= 70 AND sc.lwmtotalscore < 80 THEN 1 ELSE 0 END) AS b70_79, " +
-                        "SUM(CASE WHEN sc.lwmtotalscore >= 80 AND sc.lwmtotalscore < 90 THEN 1 ELSE 0 END) AS b80_89, " +
-                        "SUM(CASE WHEN sc.lwmtotalscore >= 90 THEN 1 ELSE 0 END) AS b90_100 " +
+                        "SUM(CASE WHEN sc.lwmtotalscore < " + passLine + " THEN 1 ELSE 0 END) AS b0, " +
+                        "SUM(CASE WHEN sc.lwmtotalscore >= " + passLine + " AND sc.lwmtotalscore < " + b2End + " THEN 1 ELSE 0 END) AS b1, " +
+                        "SUM(CASE WHEN sc.lwmtotalscore >= " + b2End + " AND sc.lwmtotalscore < " + b3End + " THEN 1 ELSE 0 END) AS b2, " +
+                        "SUM(CASE WHEN sc.lwmtotalscore >= " + b3End + " AND sc.lwmtotalscore < " + excelLine + " THEN 1 ELSE 0 END) AS b3, " +
+                        "SUM(CASE WHEN sc.lwmtotalscore >= " + excelLine + " THEN 1 ELSE 0 END) AS b4 " +
                         "FROM lwmexamscore sc " +
                         "JOIN lwmexamrecord r ON sc.lwmrecordid = r.lwmrecordid " +
                         "JOIN lwmstudent s ON sc.lwmstudentid = s.lwmstudentid " +
@@ -174,11 +212,11 @@ public class lwmScoreAnalysisAction extends HttpServlet {
                         new Object[]{paperId, cls});
                     int[] dist = new int[5];
                     if (rs.next()) {
-                        dist[0] = rs.getInt("b0_59");
-                        dist[1] = rs.getInt("b60_69");
-                        dist[2] = rs.getInt("b70_79");
-                        dist[3] = rs.getInt("b80_89");
-                        dist[4] = rs.getInt("b90_100");
+                        dist[0] = rs.getInt("b0");
+                        dist[1] = rs.getInt("b1");
+                        dist[2] = rs.getInt("b2");
+                        dist[3] = rs.getInt("b3");
+                        dist[4] = rs.getInt("b4");
                     }
                     rs.close();
                     classStats.put("dist", dist);
@@ -254,11 +292,11 @@ public class lwmScoreAnalysisAction extends HttpServlet {
                 // Query score distribution into 5 buckets
                 StringBuilder distSql = new StringBuilder(
                     "SELECT " +
-                    "SUM(CASE WHEN sc.lwmtotalscore < 60 THEN 1 ELSE 0 END) AS b0_59, " +
-                    "SUM(CASE WHEN sc.lwmtotalscore >= 60 AND sc.lwmtotalscore < 70 THEN 1 ELSE 0 END) AS b60_69, " +
-                    "SUM(CASE WHEN sc.lwmtotalscore >= 70 AND sc.lwmtotalscore < 80 THEN 1 ELSE 0 END) AS b70_79, " +
-                    "SUM(CASE WHEN sc.lwmtotalscore >= 80 AND sc.lwmtotalscore < 90 THEN 1 ELSE 0 END) AS b80_89, " +
-                    "SUM(CASE WHEN sc.lwmtotalscore >= 90 THEN 1 ELSE 0 END) AS b90_100 " +
+                    "SUM(CASE WHEN sc.lwmtotalscore < " + passLine + " THEN 1 ELSE 0 END) AS b0, " +
+                    "SUM(CASE WHEN sc.lwmtotalscore >= " + passLine + " AND sc.lwmtotalscore < " + b2End + " THEN 1 ELSE 0 END) AS b1, " +
+                    "SUM(CASE WHEN sc.lwmtotalscore >= " + b2End + " AND sc.lwmtotalscore < " + b3End + " THEN 1 ELSE 0 END) AS b2, " +
+                    "SUM(CASE WHEN sc.lwmtotalscore >= " + b3End + " AND sc.lwmtotalscore < " + excelLine + " THEN 1 ELSE 0 END) AS b3, " +
+                    "SUM(CASE WHEN sc.lwmtotalscore >= " + excelLine + " THEN 1 ELSE 0 END) AS b4 " +
                     "FROM lwmexamscore sc " +
                     "JOIN lwmexamrecord r ON sc.lwmrecordid = r.lwmrecordid " +
                     "JOIN lwmstudent s ON sc.lwmstudentid = s.lwmstudentid " +
@@ -273,17 +311,17 @@ public class lwmScoreAnalysisAction extends HttpServlet {
                 rs = db.doQuery(distSql.toString(), distParams.toArray());
                 if (rs.next()) {
                     distribution = new int[5];
-                    distribution[0] = rs.getInt("b0_59");
-                    distribution[1] = rs.getInt("b60_69");
-                    distribution[2] = rs.getInt("b70_79");
-                    distribution[3] = rs.getInt("b80_89");
-                    distribution[4] = rs.getInt("b90_100");
+                    distribution[0] = rs.getInt("b0");
+                    distribution[1] = rs.getInt("b1");
+                    distribution[2] = rs.getInt("b2");
+                    distribution[3] = rs.getInt("b3");
+                    distribution[4] = rs.getInt("b4");
                 }
                 rs.close();
 
                 // Query pass rate (score >= 60)
                 StringBuilder passSql = new StringBuilder(
-                    "SELECT COUNT(*) AS total, SUM(CASE WHEN sc.lwmtotalscore >= 60 THEN 1 ELSE 0 END) AS pass_count " +
+                    "SELECT COUNT(*) AS total, SUM(CASE WHEN sc.lwmtotalscore >= " + passLine + " THEN 1 ELSE 0 END) AS pass_count " +
                     "FROM lwmexamscore sc " +
                     "JOIN lwmexamrecord r ON sc.lwmrecordid = r.lwmrecordid " +
                     "JOIN lwmstudent s ON sc.lwmstudentid = s.lwmstudentid " +
@@ -342,6 +380,12 @@ public class lwmScoreAnalysisAction extends HttpServlet {
         request.setAttribute("distribution", distribution);
         request.setAttribute("passRate", passRate);
         request.setAttribute("studentScores", studentScores);
+        request.setAttribute("passLine", passLine);
+        request.setAttribute("b2End", b2End);
+        request.setAttribute("b3End", b3End);
+        request.setAttribute("excelLine", excelLine);
+        request.setAttribute("totalScore", totalScore);
+        request.setAttribute("bracketLabels", bracketLabels);
         request.getRequestDispatcher("lwmteacher_score_analysis.jsp").forward(request, response);
     }
 
