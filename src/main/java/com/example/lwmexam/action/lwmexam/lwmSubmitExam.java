@@ -95,9 +95,9 @@ public class lwmSubmitExam extends HttpServlet {
         saveAnswers(request, recordId, student.getLwmstudentid(), paperId, allQIds);
 
         if (isAutoSubmit) {
-            out.println("<script>alert('考试时间到，系统已自动交卷');location.href='lwmstudent_main.jsp';</script>");
+            out.println("<script>alert('考试时间到，系统已自动交卷');parent.location.href='lwmstudent_main.jsp';</script>");
         } else {
-            out.println("<script>alert('交卷成功！等待教师批阅。');location.href='lwmstudent_main.jsp';</script>");
+            out.println("<script>alert('交卷成功！等待教师批阅。');parent.location.href='lwmstudent_main.jsp';</script>");
         }
     }
 

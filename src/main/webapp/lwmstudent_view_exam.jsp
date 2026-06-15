@@ -75,7 +75,7 @@
 <body>
 <div class="container">
     <div class="header">
-        <a href="lwmstudent_main.jsp" class="btn btn-secondary" style="padding:8px 18px;font-size:0.85rem;">返回</a>
+        <a href="lwmstudent_main.jsp" target="_parent" class="btn btn-secondary" style="padding:8px 18px;font-size:0.85rem;">返回</a>
         <h2>查看试卷</h2>
     </div>
 

@@ -52,7 +52,7 @@ public class lwmViewExam extends HttpServlet {
                 totalScore = (Integer) rs.getObject("lwmtotalscore");
             } else {
                 rs.close(); pstmt.close(); conn.close();
-                response.getWriter().println("<script>alert('记录不存在或无权查看');location.href='lwmstudent_main.jsp';</script>");
+                response.getWriter().println("<script>alert('记录不存在或无权查看');parent.location.href='lwmstudent_main.jsp';</script>");
                 return;
             }
             rs.close(); pstmt.close(); conn.close();
@@ -60,7 +60,7 @@ public class lwmViewExam extends HttpServlet {
 
         // Only allow viewing submitted/graded exams
         if (status == 0) {
-            response.getWriter().println("<script>alert('该试卷尚未提交，无法查看');location.href='lwmstudent_main.jsp';</script>");
+            response.getWriter().println("<script>alert('该试卷尚未提交，无法查看');parent.location.href='lwmstudent_main.jsp';</script>");
             return;
         }
 

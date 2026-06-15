@@ -63,7 +63,7 @@ public class lwmSaveExamDraft extends HttpServlet {
             db.close();
         }
 
-        if (recordId == 0) { response.sendRedirect("lwmstudent_main.jsp"); return; }
+        if (recordId == 0) { response.getWriter().println("<script>parent.location.href='lwmstudent_main.jsp';</script>"); return; }
 
         // Load all question IDs so we can fill in unanswered ones
         lwmpaperDAO pDao = new lwmpaperDAO();
@@ -97,6 +97,6 @@ public class lwmSaveExamDraft extends HttpServlet {
         } catch (Exception e) { e.printStackTrace(); }
         db.close();
 
-        response.sendRedirect("lwmstudent_main.jsp");
+        response.getWriter().println("<script>parent.location.href='lwmstudent_main.jsp';</script>");
     }
 }
