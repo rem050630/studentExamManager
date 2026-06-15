@@ -41,7 +41,7 @@ public class lwmAddsubject extends HttpServlet {
         if (res > 0) {
             response.setContentType("text/html;charset=utf-8");
             PrintWriter out = response.getWriter();
-            out.println("<script>alert('添加成功');location.href='lwmaddsubject.jsp';</script>");
+            out.println("<script>alert('添加成功');location.href='lwmsubject_xx';</script>");
         } else {
             response.setContentType("text/html;charset=utf-8");
             PrintWriter out = response.getWriter();

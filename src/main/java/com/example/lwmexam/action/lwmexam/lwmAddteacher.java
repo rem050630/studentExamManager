@@ -47,7 +47,7 @@ public class lwmAddteacher extends HttpServlet {
         if (res > 0) {
             response.setContentType("text/html;charset=utf-8");
             PrintWriter out = response.getWriter();
-            out.println("<script>alert('添加成功');location.href='lwmaddteacher.jsp';</script>");
+            out.println("<script>alert('添加成功');location.href='lwmteacher_xx';</script>");
         } else {
             response.setContentType("text/html;charset=utf-8");
             PrintWriter out = response.getWriter();

@@ -43,13 +43,14 @@ public class lwmcourse_xx extends HttpServlet {
                 "or lwmsemester like '%" + tj + "%' ", new Object[]{});
 
         // 查询排课列表（支持搜索）
-        // 查询排课列表（支持搜索 + 三表联查）
+        // 查询排课列表（支持搜索 + 三表联查，最新添加的排在前面）
         List<lwmstudentcourseteacher> someCourse = sctDao.lwmQuerySomeSct(
                 "SELECT sct.*, sub.lwmsubjectname, tea.lwmteachername " +
                         "FROM lwmstudentcourseteacher sct " +
                         "LEFT JOIN lwmexamsubject sub ON sct.lwmsubjectid = sub.lwmsubjectid " +
                         "LEFT JOIN lwmteacher tea ON sct.lwmteacherid = tea.lwmteacherid " +
                         "WHERE lwmclassname LIKE ? OR lwmsemester LIKE ? " +
+                        "ORDER BY sct.lwmsctid DESC " +
                         "LIMIT ?,?",
                 new Object[]{
                         "%" + tj + "%",

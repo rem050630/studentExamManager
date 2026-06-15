@@ -44,12 +44,12 @@ public class lwmstudent_xx extends HttpServlet {
                 "or lwmclassname like '%" + tj + "%' " +
                 "or lwmmajor like '%" + tj + "%'", new Object[]{});
 
-        // 查询学生列表（支持多条件搜索）
+        // 查询学生列表（支持多条件搜索，最新添加的排在前面）
         List<lwmStudent> someStudent = studentDao.lwmQuerySomeStudent(
                 "select * from lwmstudent where lwmstudentno like '%" + tj + "%' " +
                         "or lwmstudentname like '%" + tj + "%' " +
                         "or lwmclassname like '%" + tj + "%' " +
-                        "or lwmmajor like '%" + tj + "%' limit ?,?",
+                        "or lwmmajor like '%" + tj + "%' ORDER BY lwmstudentid DESC limit ?,?",
                 new Object[]{fp.getStart(), fp.getPageSize()});
 
         // 将数据存入session

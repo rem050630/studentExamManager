@@ -42,10 +42,10 @@ public class lwmsubject_xx extends HttpServlet {
         fp.setFpage("select count(*) from lwmexamsubject where lwmsubjectname like '%" + tj + "%' " +
                 "or lwmterm like '%" + tj + "%'", new Object[]{});
 
-        // 查询课程列表（支持搜索）
+        // 查询课程列表（支持搜索，最新添加的排在前面）
         List<lwmSubject> someSubject = subjectDao.lwmQuerySomeSubject(
                 "select * from lwmexamsubject where lwmsubjectname like '%" + tj + "%' " +
-                        "or lwmterm like '%" + tj + "%' limit ?,?",
+                        "or lwmterm like '%" + tj + "%' ORDER BY lwmsubjectid DESC limit ?,?",
                 new Object[]{fp.getStart(), fp.getPageSize()});
 
         // 将数据存入session

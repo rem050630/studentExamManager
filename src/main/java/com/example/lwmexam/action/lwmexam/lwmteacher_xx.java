@@ -41,10 +41,10 @@ public class lwmteacher_xx extends HttpServlet {
         fp.setFpage("select count(*) from lwmteacher where lwmteacherno like '%" + tj + "%' " +
                 "or lwmteachername like '%" + tj + "%' ", new Object[]{});
 
-        // 查询教师列表
+        // 查询教师列表（最新添加的排在前面）
         List<lwmTeacher> someTeacher = teacherDao.lwmQuerySomeTeacher(
                 "select * from lwmteacher where lwmteacherno like '%" + tj + "%' " +
-                        "or lwmteachername like '%" + tj + "%' limit ?,?",
+                        "or lwmteachername like '%" + tj + "%' ORDER BY lwmteacherid DESC limit ?,?",
                 new Object[]{fp.getStart(), fp.getPageSize()});
 
         // 将数据存入session
