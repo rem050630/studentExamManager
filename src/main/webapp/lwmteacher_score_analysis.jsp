@@ -11,7 +11,18 @@
     String selectedSubjectId = (String) request.getAttribute("selectedSubjectId");
     Map<String, Object> stats = (Map<String, Object>) request.getAttribute("stats");
     int[] distribution = (int[]) request.getAttribute("distribution");
-    double passRate = (double) request.getAttribute("passRate");
+    Double passRateObj = (Double) request.getAttribute("passRate");
+    double passRate = passRateObj != null ? passRateObj : 0;
+    Integer passLineObj = (Integer) request.getAttribute("passLine");
+    int passLine = passLineObj != null ? passLineObj : 60;
+    Integer b2EndObj = (Integer) request.getAttribute("b2End");
+    int b2End = b2EndObj != null ? b2EndObj : 70;
+    Integer b3EndObj = (Integer) request.getAttribute("b3End");
+    int b3End = b3EndObj != null ? b3EndObj : 80;
+    Integer excelLineObj = (Integer) request.getAttribute("excelLine");
+    int excelLine = excelLineObj != null ? excelLineObj : 90;
+    String[] bracketLabels = (String[]) request.getAttribute("bracketLabels");
+    if (bracketLabels == null) bracketLabels = new String[]{"0-59","60-69","70-79","80-89","90-100"};
     List<Map<String, Object>> studentScores = (List<Map<String, Object>>) request.getAttribute("studentScores");
 %>
 <!DOCTYPE html>
@@ -187,8 +198,8 @@
                             int idx = 1;
                             for (Map<String, Object> ss : studentScores) {
                                 int score = (int) ss.get("score");
-                                String grade = score >= 90 ? "优秀" : (score >= 80 ? "良好" : (score >= 70 ? "中等" : (score >= 60 ? "及格" : "不及格")));
-                                String badgeClass = score >= 90 ? "badge-green" : (score >= 80 ? "badge-blue" : (score >= 70 ? "badge-yellow" : (score >= 60 ? "badge-yellow" : "badge-red")));
+                                String grade = score >= excelLine ? "优秀" : (score >= b3End ? "良好" : (score >= b2End ? "中等" : (score >= passLine ? "及格" : "不及格")));
+                                String badgeClass = score >= excelLine ? "badge-green" : (score >= b3End ? "badge-blue" : (score >= b2End ? "badge-yellow" : (score >= passLine ? "badge-yellow" : "badge-red")));
                         %>
                             <tr>
                                 <td><%= idx++ %></td>
@@ -305,7 +316,7 @@ window.addEventListener('DOMContentLoaded', function() {
         var distChart = echarts.init(distDom);
         distChart.setOption({
             tooltip: { trigger: 'axis' },
-            xAxis: { data: ['0-59','60-69','70-79','80-89','90-100'], axisLabel: { fontSize: 11 } },
+            xAxis: { data: ['<%= bracketLabels[0] %>','<%= bracketLabels[1] %>','<%= bracketLabels[2] %>','<%= bracketLabels[3] %>','<%= bracketLabels[4] %>'], axisLabel: { fontSize: 11 } },
             yAxis: { type: 'value', name: '人数', minInterval: 1 },
             series: [{
                 type: 'bar',
