@@ -151,6 +151,7 @@
 
 <script>
 var compareData = null;
+var bracketLabels = null;
 var classNames = [];
 var coreChartInst = null;
 var distChartInst = null;
@@ -323,12 +324,13 @@ function startCompare() {
             document.getElementById('kpEmpty').style.display = 'none';
             document.getElementById('kpLoading').style.display = 'none';
 
-            if (!data || data.length === 0) {
+            if (!data || !data.data || data.data.length === 0) {
                 document.getElementById('tabsContainer').style.display = 'none';
                 document.getElementById('noData').style.display = 'block';
                 return;
             }
-            compareData = data;
+            compareData = data.data;
+            bracketLabels = data.bracketLabels || ['0-59','60-69','70-79','80-89','90-100'];
             document.getElementById('tabsContainer').style.display = 'block';
             document.getElementById('noData').style.display = 'none';
             renderCoreMetrics();
@@ -427,8 +429,7 @@ function renderDistribution() {
     distRendered = true;
 
     var dom = document.getElementById('distChart');
-    var brackets = ['0-59', '60-69', '70-79', '80-89', '90-100'];
-    var colors = ['#ef4444', '#f59e0b', '#3b82f6', '#10b981', '#059669'];
+    var brackets = bracketLabels || ['0-59', '60-69', '70-79', '80-89', '90-100'];
     var series = [];
 
     for (var i = 0; i < compareData.length; i++) {
@@ -542,7 +543,7 @@ function loadKnowledgeComparison() {
             document.getElementById('kpChart').style.display = 'block';
             kpChartInst = echarts.init(document.getElementById('kpChart'));
             kpChartInst.setOption({
-                title: { text: '知识点掌握率对比', left: 'center', top: 10, textStyle: { fontSize: 14, color: '#1e293b' } },
+                title: { text: '知识点掌握率对比', left: 'center', top: -2, textStyle: { fontSize: 14, color: '#1e293b'} },
                 tooltip: {},
                 legend: { data: classNames, bottom: 0 },
                 radar: {

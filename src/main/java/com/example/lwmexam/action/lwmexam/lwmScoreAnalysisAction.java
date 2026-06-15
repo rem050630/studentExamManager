@@ -228,7 +228,7 @@ public class lwmScoreAnalysisAction extends HttpServlet {
 
             // Return JSON for AJAX requests
             response.setContentType("application/json;charset=UTF-8");
-            StringBuilder json = new StringBuilder("[");
+            StringBuilder json = new StringBuilder("{\"data\":[");
             for (int i = 0; i < compareData.size(); i++) {
                 Map<String, Object> m = compareData.get(i);
                 json.append("{");
@@ -249,7 +249,12 @@ public class lwmScoreAnalysisAction extends HttpServlet {
                 json.append("}");
                 if (i < compareData.size() - 1) json.append(",");
             }
-            json.append("]");
+            json.append("],\"bracketLabels\":[");
+            for (int k = 0; k < bracketLabels.length; k++) {
+                if (k > 0) json.append(",");
+                json.append("\"").append(escapeJson(bracketLabels[k])).append("\"");
+            }
+            json.append("],\"totalScore\":").append(totalScore).append("}");
             response.getWriter().print(json.toString());
             return;
         }
