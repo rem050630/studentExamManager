@@ -116,6 +116,26 @@ public class lwmManageKnowledgePoint extends HttpServlet {
             }
             kpDao.saveQuestionKPs(questionId, kpIds);
             response.getWriter().print("{\"success\":true}");
+        } else if ("delete".equals(action)) {
+            String kpIdStr = request.getParameter("kpid");
+            if (kpIdStr == null || kpIdStr.isEmpty()) {
+                response.getWriter().print("{\"success\":false,\"message\":\"缺少kpid参数\"}");
+                return;
+            }
+            int kpId = Integer.parseInt(kpIdStr);
+
+            int refCount = kpDao.countQuestionsByKP(kpId);
+            if (refCount > 0) {
+                response.getWriter().print("{\"success\":false,\"message\":\"该知识点已被试题使用，无法删除\"}");
+                return;
+            }
+
+            int result = kpDao.delete(kpId);
+            if (result > 0) {
+                response.getWriter().print("{\"success\":true}");
+            } else {
+                response.getWriter().print("{\"success\":false,\"message\":\"删除失败\"}");
+            }
         } else {
             response.getWriter().print("{\"success\":false,\"message\":\"未知action: " + (action != null ? action : "null") + "\"}");
         }
