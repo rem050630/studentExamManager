@@ -14,14 +14,6 @@
         "SELECT sct.*, sub.lwmsubjectname, tea.lwmteachername FROM lwmstudentcourseteacher sct LEFT JOIN lwmexamsubject sub ON sct.lwmsubjectid = sub.lwmsubjectid LEFT JOIN lwmteacher tea ON sct.lwmteacherid = tea.lwmteacherid WHERE sct.lwmteacherid = ?",
         new Object[]{teacher.getLwmteacherid()});
 
-    // Load questions for manual mode if subject selected
-    String selSubject = request.getParameter("selSubject");
-    String selMode = request.getParameter("selMode");
-    List<lwmExamQuestion> allQuestions = null;
-    if (selSubject != null && !selSubject.isEmpty() && "manual".equals(selMode)) {
-        lwmquestionDAO qDao = new lwmquestionDAO();
-        allQuestions = qDao.lwmQueryBySubjectType(selSubject, null, null);
-    }
 %>
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -82,7 +74,7 @@
         </div>
         <div class="form-group">
             <label>考试时长（分钟）</label>
-            <input type="number" name="lwmexamtime" value="120" required>
+            <input type="number" name="lwmexamtime" value="120" min="1" required>
         </div>
 
         <div class="mode-tabs">
@@ -93,44 +85,45 @@
 
         <div id="manualArea">
             <button type="button" class="load-btn" onclick="loadQuestions()">加载题库试题</button>
+            <select id="typeFilter" style="padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.9rem;margin-left:8px;" onchange="loadQuestions()">
+                <option value="">全部题型</option>
+                <option value="单选题">单选题</option>
+                <option value="多选题">多选题</option>
+                <option value="判断题">判断题</option>
+                <option value="简答题">简答题</option>
+            </select>
             <div id="questionList" class="q-list" style="margin-top:12px;">
-                <% if (allQuestions != null && !allQuestions.isEmpty()) {
-                    for (lwmExamQuestion q : allQuestions) { %>
-                        <div class="q-item">
-                            <input type="checkbox" name="questionIds" value="<%= q.getLwmquestionid() %>">
-                            <span>[<%= q.getLwmquestiontype() %>] <%= q.getLwmquestioncontent() %></span>
-                        </div>
-                    <% }
-                } else { %>
-                    <p style="color:#94a3b8;">选择科目并点击"加载题库试题"</p>
-                <% } %>
+                <p style="color:#94a3b8;">选择科目并点击"加载题库试题"</p>
             </div>
             <div class="inline-group">
-                <div class="form-group"><label>单选题分值</label><input type="number" name="danxscore" value="2" min="0"></div>
-                <div class="form-group"><label>多选题分值</label><input type="number" name="duoxscore" value="2" min="0"></div>
-                <div class="form-group"><label>判断题分值</label><input type="number" name="pdscore" value="1" min="0"></div>
-                <div class="form-group"><label>简答题分值</label><input type="number" name="jdscore" value="5" min="0"></div>
+                <div class="form-group"><label>单选题分值</label><input type="number" name="danxscore" value="2" min="0" onchange="updateTotal()"></div>
+                <div class="form-group"><label>多选题分值</label><input type="number" name="duoxscore" value="2" min="0" onchange="updateTotal()"></div>
+                <div class="form-group"><label>判断题分值</label><input type="number" name="pdscore" value="1" min="0" onchange="updateTotal()"></div>
+                <div class="form-group"><label>简答题分值</label><input type="number" name="jdscore" value="5" min="0" onchange="updateTotal()"></div>
             </div>
         </div>
         <div id="autoArea" style="display:none;">
             <div class="inline-group">
-                <div class="form-group"><label>单选题数量</label><input type="number" name="danxnum" value="0" min="0"></div>
-                <div class="form-group"><label>单选题分值</label><input type="number" name="danxscore" value="2" min="0"></div>
+                <div class="form-group"><label>单选题数量</label><input type="number" name="danxnum" value="0" min="0" onchange="updateTotal()"></div>
+                <div class="form-group"><label>单选题分值</label><input type="number" name="danxscore" value="2" min="0" onchange="updateTotal()"></div>
             </div>
             <div class="inline-group">
-                <div class="form-group"><label>多选题数量</label><input type="number" name="duoxnum" value="0" min="0"></div>
-                <div class="form-group"><label>多选题分值</label><input type="number" name="duoxscore" value="2" min="0"></div>
+                <div class="form-group"><label>多选题数量</label><input type="number" name="duoxnum" value="0" min="0" onchange="updateTotal()"></div>
+                <div class="form-group"><label>多选题分值</label><input type="number" name="duoxscore" value="2" min="0" onchange="updateTotal()"></div>
             </div>
             <div class="inline-group">
-                <div class="form-group"><label>判断题数量</label><input type="number" name="pdnum" value="0" min="0"></div>
-                <div class="form-group"><label>判断题分值</label><input type="number" name="pdscore" value="1" min="0"></div>
+                <div class="form-group"><label>判断题数量</label><input type="number" name="pdnum" value="0" min="0" onchange="updateTotal()"></div>
+                <div class="form-group"><label>判断题分值</label><input type="number" name="pdscore" value="1" min="0" onchange="updateTotal()"></div>
             </div>
             <div class="inline-group">
-                <div class="form-group"><label>简答题数量</label><input type="number" name="jdnum" value="0" min="0"></div>
-                <div class="form-group"><label>简答题分值</label><input type="number" name="jdscore" value="5" min="0"></div>
+                <div class="form-group"><label>简答题数量</label><input type="number" name="jdnum" value="0" min="0" onchange="updateTotal()"></div>
+                <div class="form-group"><label>简答题分值</label><input type="number" name="jdscore" value="5" min="0" onchange="updateTotal()"></div>
             </div>
         </div>
 
+        <div class="form-group" style="text-align:right;padding:12px 0;border-top:2px solid #e2e8f0;margin-top:8px;">
+            <span style="font-weight:600;font-size:1.1rem;color:#059669;">试卷总分：<span id="totalScore" style="font-size:1.3rem;">0</span> 分</span>
+        </div>
         <div class="btn-row">
             <a href="lwmQueryPaper" class="btn btn-secondary">取消</a>
             <button type="submit" class="btn btn-primary">创建试卷</button>
@@ -144,12 +137,61 @@
         event.target.classList.add('active');
         document.getElementById('manualArea').style.display = mode === 'manual' ? 'block' : 'none';
         document.getElementById('autoArea').style.display = mode === 'auto' ? 'block' : 'none';
+        setTimeout(updateTotal, 100);
+    }
+    function updateTotal() {
+        var mode = document.getElementById('mode').value;
+        var total = 0;
+        if (mode === 'manual') {
+            var checkboxes = document.querySelectorAll('#questionList input[name="questionIds"]:checked');
+            var danxS = parseInt(document.querySelector('input[name="danxscore"]').value) || 0;
+            var duoxS = parseInt(document.querySelector('input[name="duoxscore"]').value) || 0;
+            var pdS = parseInt(document.querySelector('input[name="pdscore"]').value) || 0;
+            var jdS = parseInt(document.querySelector('input[name="jdscore"]').value) || 0;
+            checkboxes.forEach(function(cb) {
+                var text = cb.parentElement.textContent;
+                if (text.indexOf('[单选题]') >= 0) total += danxS;
+                else if (text.indexOf('[多选题]') >= 0) total += duoxS;
+                else if (text.indexOf('[判断题]') >= 0) total += pdS;
+                else if (text.indexOf('[简答题]') >= 0) total += jdS;
+            });
+        } else {
+            var autoArea = document.getElementById('autoArea');
+            var danxN = parseInt(autoArea.querySelector('input[name="danxnum"]').value) || 0;
+            var duoxN = parseInt(autoArea.querySelector('input[name="duoxnum"]').value) || 0;
+            var pdN = parseInt(autoArea.querySelector('input[name="pdnum"]').value) || 0;
+            var jdN = parseInt(autoArea.querySelector('input[name="jdnum"]').value) || 0;
+            var danxS = parseInt(autoArea.querySelector('input[name="danxscore"]').value) || 0;
+            var duoxS = parseInt(autoArea.querySelector('input[name="duoxscore"]').value) || 0;
+            var pdS = parseInt(autoArea.querySelector('input[name="pdscore"]').value) || 0;
+            var jdS = parseInt(autoArea.querySelector('input[name="jdscore"]').value) || 0;
+            total = danxN*danxS + duoxN*duoxS + pdN*pdS + jdN*jdS;
+        }
+        document.getElementById('totalScore').textContent = total;
     }
     function loadQuestions() {
         var subjectId = document.getElementById('subjectSelect').value;
         if (!subjectId) { alert('请先选择科目'); return; }
-        window.location.href = 'lwmteacher_paper_create.jsp?selSubject=' + subjectId + '&selMode=manual';
+        var typeFilter = document.getElementById('typeFilter');
+        var type = typeFilter ? typeFilter.value : '';
+        var url = 'lwmLoadQuestions?subject=' + subjectId;
+        if (type) url += '&type=' + encodeURIComponent(type);
+        var list = document.getElementById('questionList');
+        list.innerHTML = '<p style="color:#94a3b8;">加载中...</p>';
+        fetch(url).then(function(r) { return r.text(); }).then(function(html) {
+            list.innerHTML = html;
+            var cbs = list.querySelectorAll('input[name="addQuestionIds"]');
+            cbs.forEach(function(cb) { cb.name = 'questionIds'; });
+            if (typeof updateTotal === 'function') updateTotal();
+        }).catch(function() {
+            list.innerHTML = '<p style="color:#ef4444;">加载失败，请重试</p>';
+        });
     }
+</script>
+<script>
+document.getElementById('questionList').addEventListener('change', function(e) {
+    if (e.target.type === 'checkbox' && e.target.name === 'questionIds') updateTotal();
+});
 </script>
 </body>
 </html>

@@ -96,6 +96,11 @@
         for (var i = 0; i < inputs.length; i++) {
             var v = parseInt(inputs[i].value) || 0;
             var max = parseInt(inputs[i].max) || 0;
+            if (v < 0) {
+                alert('第' + (i + 1) + '题得分不能为负数');
+                inputs[i].focus();
+                return false;
+            }
             if (v > max) {
                 alert('第' + (i + 1) + '题得分（' + v + '）超过了分值上限（' + max + '），请修改后再提交。');
                 inputs[i].focus();

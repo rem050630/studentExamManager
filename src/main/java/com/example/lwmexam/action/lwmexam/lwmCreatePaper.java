@@ -40,6 +40,19 @@ public class lwmCreatePaper extends HttpServlet {
             examTime = Integer.parseInt(request.getParameter("lwmexamtime"));
         } catch (NumberFormatException ignored) {}
 
+        // Validate start time is before end time
+        if (startTime != null && !startTime.isEmpty() && endTime != null && !endTime.isEmpty()) {
+            if (startTime.compareTo(endTime) >= 0) {
+                out.println("<script>alert('考试开始时间必须早于结束时间');history.go(-1);</script>");
+                return;
+            }
+        }
+
+        if (examTime <= 0) {
+            out.println("<script>alert('考试时间必须大于0分钟');history.go(-1);</script>");
+            return;
+        }
+
         List<lwmExamQuestion> selectedQuestions = new ArrayList<>();
         lwmquestionDAO qDao = new lwmquestionDAO();
         int danxScore = 0, duoxScore = 0, pdScore = 0, jdScore = 0;
@@ -67,6 +80,23 @@ public class lwmCreatePaper extends HttpServlet {
             pdScore = Integer.parseInt(request.getParameter("pdscore"));
             jdScore = Integer.parseInt(request.getParameter("jdscore"));
 
+            if (danxNum + duoxNum + pdNum + jdNum <= 0) {
+                out.println("<script>alert('请至少选择一道试题');history.go(-1);</script>"); return;
+            }
+
+            // Validate question counts against available in question bank
+            Object[][] typeChecks = {{danxNum, "单选题"}, {duoxNum, "多选题"}, {pdNum, "判断题"}, {jdNum, "简答题"}};
+            for (Object[] tc : typeChecks) {
+                int need = (int) tc[0];
+                if (need > 0) {
+                    int available = qDao.lwmCountByType(subjectId, (String) tc[1]);
+                    if (need > available) {
+                        out.println("<script>alert('" + tc[1] + "数量不足：需要" + need + "道，题库仅有" + available + "道');history.go(-1);</script>");
+                        return;
+                    }
+                }
+            }
+
             selectedQuestions.addAll(qDao.lwmRandomPick(subjectId, "单选题", danxNum));
             selectedQuestions.addAll(qDao.lwmRandomPick(subjectId, "多选题", duoxNum));
             selectedQuestions.addAll(qDao.lwmRandomPick(subjectId, "判断题", pdNum));
@@ -75,6 +105,11 @@ public class lwmCreatePaper extends HttpServlet {
 
         // Categorize questions and build statistics
         int danxNum = 0, duoxNum = 0, pdNum = 0, jdNum = 0;
+
+        if (danxScore < 0 || duoxScore < 0 || pdScore < 0 || jdScore < 0) {
+            out.println("<script>alert('试题分值不能为负数');history.go(-1);</script>");
+            return;
+        }
         StringBuilder danxNos = new StringBuilder(), duoxNos = new StringBuilder(), pdNos = new StringBuilder(), jdNos = new StringBuilder();
 
         for (int i = 0; i < selectedQuestions.size(); i++) {
@@ -100,6 +135,12 @@ public class lwmCreatePaper extends HttpServlet {
         paper.setLwmexamsore(danxNum*danxScore + duoxNum*duoxScore + pdNum*pdScore + jdNum*jdScore);
 
         lwmpaperDAO pDao = new lwmpaperDAO();
+
+        if (pDao.lwmExistPaperByNameSubject(paperName, subjectId, teacher.getLwmteacherid())) {
+            out.println("<script>alert('已存在相同名称和科目的试卷，请修改试卷名称或选择其他科目');history.go(-1);</script>");
+            return;
+        }
+
         int paperId = pDao.lwmAddPaper(paper);
         if (paperId > 0) {
             for (lwmExamQuestion q : selectedQuestions) {

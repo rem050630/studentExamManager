@@ -77,7 +77,10 @@ public class lwmSubmitScore extends HttpServlet {
                 else if ("多选题".equals(type)) maxScore = paper.getLwmduoxscore();
                 else if ("判断题".equals(type)) maxScore = paper.getLwmpdscore();
                 else if ("简答题".equals(type)) maxScore = paper.getLwmjdscore();
-                if (maxScore > 0 && score > maxScore) score = maxScore;
+                if (score < 0 || (maxScore > 0 && score > maxScore)) {
+                    out.println("<script>alert('分数无效，应在0到" + maxScore + "分之间');history.go(-1);</script>");
+                    return;
+                }
                 dao.lwmSaveQuestionScore(answerId, score);
                 totalScore += score;
             }

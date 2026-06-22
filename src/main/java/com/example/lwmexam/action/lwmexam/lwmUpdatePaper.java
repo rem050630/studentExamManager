@@ -64,6 +64,35 @@ public class lwmUpdatePaper extends HttpServlet {
         lwmpaperDAO dao = new lwmpaperDAO();
         boolean hasSubmit = dao.hasSubmitRecord(paperId);
 
+        // Validate start time is before end time
+        String startTime = request.getParameter("lwmstarttime");
+        String endTime = request.getParameter("lwmendtime");
+        if (startTime != null && !startTime.isEmpty() && endTime != null && !endTime.isEmpty()) {
+            if (startTime.compareTo(endTime) >= 0) {
+                out.println("<script>alert('考试开始时间必须早于结束时间');history.go(-1);</script>");
+                return;
+            }
+        }
+
+        int examTime = 0;
+        try {
+            examTime = Integer.parseInt(request.getParameter("lwmexamtime"));
+        } catch (NumberFormatException ignored) {}
+        if (examTime <= 0) {
+            out.println("<script>alert('考试时间必须大于0分钟');history.go(-1);</script>");
+            return;
+        }
+
+        // Validate no duplicate paper name + subject (excluding current paper)
+        String paperName = request.getParameter("lwmpapername");
+        int subjectId = Integer.parseInt(request.getParameter("lwmsubjectid"));
+        HttpSession session = request.getSession();
+        lwmTeacher teacher = (lwmTeacher) session.getAttribute("teacher");
+        if (teacher != null && dao.lwmExistPaperByNameSubject(paperName, subjectId, teacher.getLwmteacherid(), paperId)) {
+            out.println("<script>alert('已存在相同名称和科目的试卷，请修改试卷名称或选择其他科目');history.go(-1);</script>");
+            return;
+        }
+
         // Update question composition only if no students have submitted
         if (!hasSubmit) {
             String[] qIds = request.getParameterValues("questionIds");
@@ -95,6 +124,11 @@ public class lwmUpdatePaper extends HttpServlet {
                 try { duoxScore = Integer.parseInt(request.getParameter("duoxscore")); } catch(Exception e) {}
                 try { pdScore = Integer.parseInt(request.getParameter("pdscore")); } catch(Exception e) {}
                 try { jdScore = Integer.parseInt(request.getParameter("jdscore")); } catch(Exception e) {}
+
+                if (danxScore < 0 || duoxScore < 0 || pdScore < 0 || jdScore < 0) {
+                    out.println("<script>alert('试题分值不能为负数');history.go(-1);</script>");
+                    return;
+                }
 
                 lwmExamPaper p = dao.lwmQueryPaperById(paperId);
                 p.setLwmdanxnum(danxNum); p.setLwmdanxscore(danxScore); p.setLwmdanxnos(rmComma(danxNos));
