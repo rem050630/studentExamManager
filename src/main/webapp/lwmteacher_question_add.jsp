@@ -233,10 +233,13 @@
                     for (var j = 0; j < existingKpIds.length; j++) {
                         if (existingKpIds[j] === kp.kpid) { checked = ' checked'; break; }
                     }
-                    html += '<label style="display:inline-block;margin-right:16px;margin-bottom:6px;font-size:0.85rem;cursor:pointer;">';
+                    html += '<span class="kp-item" style="display:inline-block;margin-right:16px;margin-bottom:6px;">';
+                    html += '<label style="font-size:0.85rem;cursor:pointer;">';
                     html += '<input type="checkbox" name="kpids" value="' + kp.kpid + '"' + checked + ' style="margin-right:4px;">';
                     html += kp.kpname;
                     html += '</label>';
+                    html += '<span onclick="deleteKP(' + kp.kpid + ')" style="cursor:pointer;color:#ef4444;margin-left:4px;font-size:0.85rem;" title="删除知识点">×</span>';
+                    html += '</span>';
                 }
                 container.innerHTML = html;
             })
@@ -283,6 +286,25 @@
             document.getElementById('addKpBtn').textContent = '添加';
             alert('网络错误，添加失败');
         });
+    }
+
+    function deleteKP(kpId) {
+        if (!confirm('确定删除该知识点？删除后不可恢复')) return;
+        fetch('lwmManageKnowledgePoint', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'action=delete&kpid=' + encodeURIComponent(kpId)
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                existingKpIds = existingKpIds.filter(function(id) { return id !== kpId; });
+                loadKnowledgePoints();
+            } else {
+                alert(data.message || '删除失败');
+            }
+        })
+        .catch(function() { alert('网络错误，删除失败'); });
     }
 
     // Load KPs on page load if editing with a subject already selected
