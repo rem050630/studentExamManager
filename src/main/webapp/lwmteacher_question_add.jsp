@@ -288,12 +288,18 @@
         });
     }
 
+    var deletingKpId = 0;
     function deleteKP(kpId) {
+        if (deletingKpId) return;
         if (!confirm('确定删除该知识点？删除后不可恢复')) return;
+        deletingKpId = kpId;
+        var formData = new URLSearchParams();
+        formData.append('action', 'delete');
+        formData.append('kpid', kpId);
         fetch('lwmManageKnowledgePoint', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'action=delete&kpid=' + encodeURIComponent(kpId)
+            body: formData.toString()
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {
@@ -303,8 +309,12 @@
             } else {
                 alert(data.message || '删除失败');
             }
+            deletingKpId = 0;
         })
-        .catch(function() { alert('网络错误，删除失败'); });
+        .catch(function() {
+            alert('网络错误，删除失败');
+            deletingKpId = 0;
+        });
     }
 
     // Load KPs on page load if editing with a subject already selected
