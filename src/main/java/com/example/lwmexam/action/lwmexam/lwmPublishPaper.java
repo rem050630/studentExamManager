@@ -56,8 +56,9 @@ public class lwmPublishPaper extends HttpServlet {
                 "jdbc:mysql://localhost:3306/lwmexam?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8",
                 "root", "123456");
             PreparedStatement pstmt = conn.prepareStatement(
-                "SELECT DISTINCT lwmclassname FROM lwmstudentcourseteacher WHERE lwmteacherid = ? ORDER BY lwmclassname");
+                "SELECT DISTINCT lwmclassname FROM lwmstudentcourseteacher WHERE lwmteacherid = ? AND lwmsubjectid = ? ORDER BY lwmclassname");
             pstmt.setInt(1, teacher.getLwmteacherid());
+            pstmt.setInt(2, paper.getLwmsubjectid());
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) teacherClasses.add(rs.getString("lwmclassname"));
             rs.close(); pstmt.close(); conn.close();
@@ -107,9 +108,51 @@ public class lwmPublishPaper extends HttpServlet {
 
         int paperId = Integer.parseInt(request.getParameter("paperId"));
         String[] selectedClasses = request.getParameterValues("classes");
-        String classname = "";
+
+        // Load paper's subject for validation
+        int paperSubjectId = 0;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection connSubj = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/lwmexam?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8",
+                "root", "123456");
+            PreparedStatement pstmtSubj = connSubj.prepareStatement(
+                "SELECT lwmsubjectid FROM lwmexampaper WHERE lwmpaperid = ?");
+            pstmtSubj.setInt(1, paperId);
+            ResultSet rsSubj = pstmtSubj.executeQuery();
+            if (rsSubj.next()) paperSubjectId = rsSubj.getInt("lwmsubjectid");
+            rsSubj.close(); pstmtSubj.close(); connSubj.close();
+        } catch (Exception e) { e.printStackTrace(); }
+
+        // Validate each selected class against teacher's course arrangements
+        List<String> validClasses = new ArrayList<>();
+        List<String> skippedClasses = new ArrayList<>();
         if (selectedClasses != null && selectedClasses.length > 0) {
-            classname = String.join(",", selectedClasses);
+            try {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                Connection connVal = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/lwmexam?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8",
+                    "root", "123456");
+                PreparedStatement pstmtVal = connVal.prepareStatement(
+                    "SELECT COUNT(*) FROM lwmstudentcourseteacher WHERE lwmteacherid = ? AND lwmsubjectid = ? AND lwmclassname = ?");
+                for (String cls : selectedClasses) {
+                    pstmtVal.setInt(1, teacher.getLwmteacherid());
+                    pstmtVal.setInt(2, paperSubjectId);
+                    pstmtVal.setString(3, cls.trim());
+                    ResultSet rsVal = pstmtVal.executeQuery();
+                    if (rsVal.next() && rsVal.getInt(1) > 0) {
+                        validClasses.add(cls.trim());
+                    } else {
+                        skippedClasses.add(cls.trim());
+                    }
+                    rsVal.close();
+                }
+                pstmtVal.close(); connVal.close();
+            } catch (Exception e) { e.printStackTrace(); }
+        }
+        String classname = "";
+        if (!validClasses.isEmpty()) {
+            classname = String.join(",", validClasses);
         }
 
         // Check if any class being removed has submitted exam records
@@ -181,7 +224,13 @@ public class lwmPublishPaper extends HttpServlet {
             int res = pstmt.executeUpdate();
             pstmt.close(); conn.close();
             if (res > 0) {
-                out.println("<script>alert('发布成功');location.href='lwmQueryPaper';</script>");
+                if (!skippedClasses.isEmpty()) {
+                    out.println("<script>alert('发布成功。以下班级非本课程授课班级，已自动跳过：" + String.join("、", skippedClasses) + "');location.href='lwmQueryPaper';</script>");
+                } else if (validClasses.isEmpty()) {
+                    out.println("<script>alert('所选班级均非本课程授课班级，发布失败');history.go(-1);</script>");
+                } else {
+                    out.println("<script>alert('发布成功');location.href='lwmQueryPaper';</script>");
+                }
             } else {
                 out.println("<script>alert('发布失败');history.go(-1);</script>");
             }
