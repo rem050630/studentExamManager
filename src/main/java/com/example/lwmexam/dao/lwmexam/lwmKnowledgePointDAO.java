@@ -107,4 +107,15 @@ public class lwmKnowledgePointDAO {
         db.close();
         return sb.toString();
     }
+
+    // Count how many questions reference a knowledge point
+    public int countQuestionsByKP(int kpId) {
+        int count = 0;
+        try {
+            rs = db.doQuery("SELECT COUNT(*) FROM lwmquestionknowledge WHERE lwmkpid = ?", new Object[]{kpId});
+            if (rs.next()) count = rs.getInt(1);
+        } catch (Exception e) { e.printStackTrace(); }
+        db.close();
+        return count;
+    }
 }
