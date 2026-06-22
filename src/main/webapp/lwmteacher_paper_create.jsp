@@ -96,28 +96,28 @@
                 <p style="color:#94a3b8;">选择科目并点击"加载题库试题"</p>
             </div>
             <div class="inline-group">
-                <div class="form-group"><label>单选题分值</label><input type="number" name="danxscore" value="2" min="0" onchange="updateTotal()"></div>
-                <div class="form-group"><label>多选题分值</label><input type="number" name="duoxscore" value="2" min="0" onchange="updateTotal()"></div>
-                <div class="form-group"><label>判断题分值</label><input type="number" name="pdscore" value="1" min="0" onchange="updateTotal()"></div>
-                <div class="form-group"><label>简答题分值</label><input type="number" name="jdscore" value="5" min="0" onchange="updateTotal()"></div>
+                <div class="form-group"><label>单选题分值</label><input type="number" name="danxscore" value="2" min="1" onchange="updateTotal()"></div>
+                <div class="form-group"><label>多选题分值</label><input type="number" name="duoxscore" value="2" min="1" onchange="updateTotal()"></div>
+                <div class="form-group"><label>判断题分值</label><input type="number" name="pdscore" value="1" min="1" onchange="updateTotal()"></div>
+                <div class="form-group"><label>简答题分值</label><input type="number" name="jdscore" value="5" min="1" onchange="updateTotal()"></div>
             </div>
         </div>
         <div id="autoArea" style="display:none;">
             <div class="inline-group">
                 <div class="form-group"><label>单选题数量</label><input type="number" name="danxnum" value="0" min="0" onchange="updateTotal()"></div>
-                <div class="form-group"><label>单选题分值</label><input type="number" name="danxscore" value="2" min="0" onchange="updateTotal()"></div>
+                <div class="form-group"><label>单选题分值</label><input type="number" name="danxscore" value="2" min="1" onchange="updateTotal()"></div>
             </div>
             <div class="inline-group">
                 <div class="form-group"><label>多选题数量</label><input type="number" name="duoxnum" value="0" min="0" onchange="updateTotal()"></div>
-                <div class="form-group"><label>多选题分值</label><input type="number" name="duoxscore" value="2" min="0" onchange="updateTotal()"></div>
+                <div class="form-group"><label>多选题分值</label><input type="number" name="duoxscore" value="2" min="1" onchange="updateTotal()"></div>
             </div>
             <div class="inline-group">
                 <div class="form-group"><label>判断题数量</label><input type="number" name="pdnum" value="0" min="0" onchange="updateTotal()"></div>
-                <div class="form-group"><label>判断题分值</label><input type="number" name="pdscore" value="1" min="0" onchange="updateTotal()"></div>
+                <div class="form-group"><label>判断题分值</label><input type="number" name="pdscore" value="1" min="1" onchange="updateTotal()"></div>
             </div>
             <div class="inline-group">
                 <div class="form-group"><label>简答题数量</label><input type="number" name="jdnum" value="0" min="0" onchange="updateTotal()"></div>
-                <div class="form-group"><label>简答题分值</label><input type="number" name="jdscore" value="5" min="0" onchange="updateTotal()"></div>
+                <div class="form-group"><label>简答题分值</label><input type="number" name="jdscore" value="5" min="1" onchange="updateTotal()"></div>
             </div>
         </div>
 

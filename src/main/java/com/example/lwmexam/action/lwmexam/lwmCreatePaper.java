@@ -106,8 +106,8 @@ public class lwmCreatePaper extends HttpServlet {
         // Categorize questions and build statistics
         int danxNum = 0, duoxNum = 0, pdNum = 0, jdNum = 0;
 
-        if (danxScore < 0 || duoxScore < 0 || pdScore < 0 || jdScore < 0) {
-            out.println("<script>alert('试题分值不能为负数');history.go(-1);</script>");
+        if (danxScore <= 0 || duoxScore <= 0 || pdScore <= 0 || jdScore <= 0) {
+            out.println("<script>alert('试题分值必须大于0');history.go(-1);</script>");
             return;
         }
         StringBuilder danxNos = new StringBuilder(), duoxNos = new StringBuilder(), pdNos = new StringBuilder(), jdNos = new StringBuilder();

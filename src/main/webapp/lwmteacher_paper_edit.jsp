@@ -164,19 +164,19 @@
             <div class="score-row">
                 <div class="form-group">
                     <label>单选题分值</label>
-                    <input type="number" name="danxscore" value="<%= paper.getLwmdanxscore() %>" min="0" onchange="updateTotal()">
+                    <input type="number" name="danxscore" value="<%= paper.getLwmdanxscore() %>" min="1" onchange="updateTotal()">
                 </div>
                 <div class="form-group">
                     <label>多选题分值</label>
-                    <input type="number" name="duoxscore" value="<%= paper.getLwmduoxscore() %>" min="0" onchange="updateTotal()">
+                    <input type="number" name="duoxscore" value="<%= paper.getLwmduoxscore() %>" min="1" onchange="updateTotal()">
                 </div>
                 <div class="form-group">
                     <label>判断题分值</label>
-                    <input type="number" name="pdscore" value="<%= paper.getLwmpdscore() %>" min="0" onchange="updateTotal()">
+                    <input type="number" name="pdscore" value="<%= paper.getLwmpdscore() %>" min="1" onchange="updateTotal()">
                 </div>
                 <div class="form-group">
                     <label>简答题分值</label>
-                    <input type="number" name="jdscore" value="<%= paper.getLwmjdscore() %>" min="0" onchange="updateTotal()">
+                    <input type="number" name="jdscore" value="<%= paper.getLwmjdscore() %>" min="1" onchange="updateTotal()">
                 </div>
             </div>
 

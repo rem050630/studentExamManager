@@ -125,8 +125,8 @@ public class lwmUpdatePaper extends HttpServlet {
                 try { pdScore = Integer.parseInt(request.getParameter("pdscore")); } catch(Exception e) {}
                 try { jdScore = Integer.parseInt(request.getParameter("jdscore")); } catch(Exception e) {}
 
-                if (danxScore < 0 || duoxScore < 0 || pdScore < 0 || jdScore < 0) {
-                    out.println("<script>alert('试题分值不能为负数');history.go(-1);</script>");
+                if (danxScore <= 0 || duoxScore <= 0 || pdScore <= 0 || jdScore <= 0) {
+                    out.println("<script>alert('试题分值必须大于0');history.go(-1);</script>");
                     return;
                 }
 
