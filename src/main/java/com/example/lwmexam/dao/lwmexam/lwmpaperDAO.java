@@ -83,6 +83,22 @@ public class lwmpaperDAO {
         return lwmQuerySomePaper(sql.toString(), params.toArray());
     }
 
+    // 检查同一教师是否已存在名称和科目都相同的试卷
+    public boolean lwmExistPaperByNameSubject(String paperName, int subjectId, int teacherId) {
+        return lwmExistPaperByNameSubject(paperName, subjectId, teacherId, 0);
+    }
+    public boolean lwmExistPaperByNameSubject(String paperName, int subjectId, int teacherId, int excludeId) {
+        boolean exists = false;
+        try {
+            rs = db.doQuery(
+                "SELECT COUNT(*) FROM lwmexampaper WHERE lwmpapername=? AND lwmsubjectid=? AND lwmteacherid=? AND lwmpaperid!=?",
+                new Object[]{paperName, subjectId, teacherId, excludeId});
+            if (rs.next()) exists = rs.getInt(1) > 0;
+        } catch (Exception e) { e.printStackTrace(); }
+        db.close();
+        return exists;
+    }
+
     // Insert a new paper. Returns the auto-generated paper ID, or 0 on failure.
     public int lwmAddPaper(lwmExamPaper p) {
         int paperId = 0;
@@ -139,6 +155,23 @@ public class lwmpaperDAO {
         return res;
     }
 
+    // Update paper including question type scores and composition info.
+    public int lwmUpdatePaperFull(lwmExamPaper p) {
+        res = db.doUpdate(
+            "UPDATE lwmexampaper SET lwmpapername=?,lwmsubjectid=?,lwmexamtime=?,lwmexamsore=?,lwmstarttime=?,lwmendtime=?," +
+            "lwmdanxnum=?,lwmdanxscore=?,lwmdanxnos=?," +
+            "lwmduoxnum=?,lwmduoxscore=?,lwmduoxnos=?," +
+            "lwmpdnum=?,lwmpdscore=?,lwmpdnos=?," +
+            "lwmjdnum=?,lwmjdscore=?,lwmjdnos=? WHERE lwmpaperid=?",
+            new Object[]{p.getLwmpapername(),p.getLwmsubjectid(),p.getLwmexamtime(),p.getLwmexamsore(),p.getLwmstarttime(),p.getLwmendtime(),
+            p.getLwmdanxnum(),p.getLwmdanxscore(),p.getLwmdanxnos(),
+            p.getLwmduoxnum(),p.getLwmduoxscore(),p.getLwmduoxnos(),
+            p.getLwmpdnum(),p.getLwmpdscore(),p.getLwmpdnos(),
+            p.getLwmjdnum(),p.getLwmjdscore(),p.getLwmjdnos(),p.getLwmpaperid()});
+        db.close();
+        return res;
+    }
+
     // Delete all question associations for a paper.
     public void lwmDeletePaperQuestions(int paperId) {
         db.doUpdate("DELETE FROM lwmpaperquestion WHERE lwmpaperid = ?", new Object[]{paperId});
@@ -151,6 +184,66 @@ public class lwmpaperDAO {
         res = db.doUpdate("DELETE FROM lwmexampaper WHERE lwmpaperid = ?", new Object[]{paperId});
         db.close();
         return res;
+    }
+
+    public int lwmCountByTeacherFilters(int teacherId, String classname, String papername, Integer subjectId) {
+        int count = 0;
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM lwmexampaper p WHERE p.lwmteacherid = ?");
+        List<Object> params = new ArrayList<>();
+        params.add(teacherId);
+        if (classname != null && !classname.isEmpty()) {
+            sql.append(" AND p.lwmclassname LIKE CONCAT('%', ?, '%')");
+            params.add(classname);
+        }
+        if (papername != null && !papername.isEmpty()) {
+            sql.append(" AND p.lwmpapername LIKE ?");
+            params.add("%" + papername + "%");
+        }
+        if (subjectId != null) {
+            sql.append(" AND p.lwmsubjectid = ?");
+            params.add(subjectId);
+        }
+        try {
+            rs = db.doQuery(sql.toString(), params.toArray());
+            if (rs.next()) count = rs.getInt(1);
+        } catch (Exception e) { e.printStackTrace(); }
+        db.close();
+        return count;
+    }
+
+    public List<lwmExamPaper> lwmQueryByTeacherFiltersPaged(
+            int teacherId, String classname, String papername, Integer subjectId, int start, int pageSize) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT p.*, s.lwmsubjectname FROM lwmexampaper p " +
+            "LEFT JOIN lwmexamsubject s ON p.lwmsubjectid = s.lwmsubjectid " +
+            "WHERE p.lwmteacherid = ?");
+        List<Object> params = new ArrayList<>();
+        params.add(teacherId);
+        if (classname != null && !classname.isEmpty()) {
+            sql.append(" AND p.lwmclassname LIKE CONCAT('%', ?, '%')");
+            params.add(classname);
+        }
+        if (papername != null && !papername.isEmpty()) {
+            sql.append(" AND p.lwmpapername LIKE ?");
+            params.add("%" + papername + "%");
+        }
+        if (subjectId != null) {
+            sql.append(" AND p.lwmsubjectid = ?");
+            params.add(subjectId);
+        }
+        sql.append(" ORDER BY p.lwmpaperid DESC LIMIT ?,?");
+        params.add(start);
+        params.add(pageSize);
+        return lwmQuerySomePaper(sql.toString(), params.toArray());
+    }
+
+    // Get all papers that reference a given question.
+    public List<lwmExamPaper> getPapersByQuestionId(int questionId) {
+        return lwmQuerySomePaper(
+            "SELECT p.* FROM lwmexampaper p " +
+            "INNER JOIN lwmpaperquestion pq ON p.lwmpaperid = pq.lwmpaperid " +
+            "WHERE pq.lwmquestionid = ?",
+            new Object[]{questionId});
     }
 
     // Check if any student has submitted this paper.
