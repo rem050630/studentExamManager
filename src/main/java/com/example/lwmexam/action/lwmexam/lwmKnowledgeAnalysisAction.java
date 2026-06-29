@@ -174,10 +174,12 @@ public class lwmKnowledgeAnalysisAction extends HttpServlet {
 
         } else {
             // Mode 1: Overall KP analysis
+            String classname = request.getParameter("classname");
+            boolean filterByClass = classname != null && !classname.trim().isEmpty();
+
             List<Map<String, Object>> result = new ArrayList<>();
             try {
-                rs = db.doQuery(
-                    "SELECT kp.lwmkpid, kp.lwmkpname, " +
+                String sql = "SELECT kp.lwmkpid, kp.lwmkpname, " +
                     "COUNT(DISTINCT sa.lwmquestionid) AS qcnt, " +
                     "AVG(CASE WHEN sa.lwmquestionscore > 0 THEN 1 ELSE 0 END) AS score_rate, " +
                     "COUNT(*) AS total_answers " +
@@ -185,10 +187,12 @@ public class lwmKnowledgeAnalysisAction extends HttpServlet {
                     "JOIN lwmquestionknowledge qk ON kp.lwmkpid = qk.lwmkpid " +
                     "JOIN lwmpaperquestion pq ON qk.lwmquestionid = pq.lwmquestionid " +
                     "JOIN lwmstudentanswer sa ON sa.lwmquestionid = qk.lwmquestionid AND sa.lwmpaperid = pq.lwmpaperid " +
+                    (filterByClass ? "JOIN lwmstudent s ON sa.lwmstudentid = s.lwmstudentid AND s.lwmclassname = ? " : "") +
                     "WHERE pq.lwmpaperid = ? " +
                     "GROUP BY kp.lwmkpid, kp.lwmkpname " +
-                    "ORDER BY score_rate ASC",
-                    new Object[]{paperId});
+                    "ORDER BY score_rate ASC";
+                rs = db.doQuery(sql,
+                    filterByClass ? new Object[]{classname.trim(), paperId} : new Object[]{paperId});
                 while (rs.next()) {
                     Map<String, Object> row = new LinkedHashMap<>();
                     row.put("kpid", rs.getInt("lwmkpid"));
