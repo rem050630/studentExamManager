@@ -30,6 +30,10 @@ public class lwmQuestionQualityAction extends HttpServlet {
         }
         int paperId = Integer.parseInt(paperIdStr);
 
+        // 新增：读取可选的 classname 参数
+        String classname = request.getParameter("classname");
+        boolean filterByClass = classname != null && !classname.trim().isEmpty();
+
         MysqlConn db = new MysqlConn();
         ResultSet rs = null;
 
@@ -79,8 +83,9 @@ public class lwmQuestionQualityAction extends HttpServlet {
                 "q.lwmquestiontype, q.lwmcorrectanswer " +
                 "FROM lwmstudentanswer sa " +
                 "JOIN lwmexamquestion q ON sa.lwmquestionid = q.lwmquestionid " +
+                (filterByClass ? "JOIN lwmstudent s ON sa.lwmstudentid = s.lwmstudentid AND s.lwmclassname = ? " : "") +
                 "WHERE sa.lwmpaperid = ?",
-                new Object[]{paperId});
+                filterByClass ? new Object[]{classname.trim(), paperId} : new Object[]{paperId});
             while (rs.next()) {
                 Map<String, Object> a = new LinkedHashMap<>();
                 a.put("qid", rs.getInt("lwmquestionid"));
@@ -113,8 +118,12 @@ public class lwmQuestionQualityAction extends HttpServlet {
         List<Integer> sortedByScore = new ArrayList<>();
         try {
             rs = db.doQuery(
-                "SELECT lwmstudentid, lwmtotalscore FROM lwmexamscore WHERE lwmpaperid = ? ORDER BY lwmtotalscore DESC",
-                new Object[]{paperId});
+                "SELECT sc.lwmstudentid, sc.lwmtotalscore " +
+                "FROM lwmexamscore sc " +
+                (filterByClass ? "JOIN lwmstudent s ON sc.lwmstudentid = s.lwmstudentid AND s.lwmclassname = ? " : "") +
+                "WHERE sc.lwmpaperid = ? " +
+                "ORDER BY sc.lwmtotalscore DESC",
+                filterByClass ? new Object[]{classname.trim(), paperId} : new Object[]{paperId});
             while (rs.next()) {
                 int sid = rs.getInt("lwmstudentid");
                 int score = rs.getInt("lwmtotalscore");
