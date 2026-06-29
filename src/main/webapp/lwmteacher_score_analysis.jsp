@@ -268,6 +268,8 @@
 </div>
 
 <script>
+// 从JSP获取当前筛选的班级
+var selectedClass = '<%= selectedClass != null ? selectedClass : "" %>';
 // Tab switching
 function switchTab(tabName) {
     document.querySelectorAll('.tab-btn').forEach(function(btn) { btn.classList.remove('active'); });
@@ -346,7 +348,10 @@ function loadQuestionQuality() {
     var paperId = '<%= selectedPaperId != null ? selectedPaperId : "" %>';
     if (!paperId) { document.getElementById('qualityLoading').style.display = 'none'; document.getElementById('qualityEmpty').style.display = 'block'; return; }
 
-    fetch('lwmQuestionQuality?paperid=' + encodeURIComponent(paperId))
+    var url = 'lwmQuestionQuality?paperid=' + encodeURIComponent(paperId);
+    if (selectedClass) url += '&classname=' + encodeURIComponent(selectedClass);
+
+    fetch(url)
         .then(function(r) { return r.json(); })
         .then(function(data) {
             document.getElementById('qualityLoading').style.display = 'none';
@@ -386,7 +391,10 @@ function loadKnowledgeAnalysis() {
     var paperId = '<%= selectedPaperId != null ? selectedPaperId : "" %>';
     if (!paperId) { document.getElementById('kpLoading').style.display = 'none'; document.getElementById('kpEmpty').style.display = 'block'; return; }
 
-    fetch('lwmKnowledgeAnalysis?paperid=' + encodeURIComponent(paperId))
+    var url = 'lwmKnowledgeAnalysis?paperid=' + encodeURIComponent(paperId);
+    if (selectedClass) url += '&classname=' + encodeURIComponent(selectedClass);
+
+    fetch(url)
         .then(function(r) { return r.json(); })
         .then(function(data) {
             document.getElementById('kpLoading').style.display = 'none';
