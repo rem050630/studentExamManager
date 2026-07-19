@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page import="java.util.List" %>
 <%@ page import="com.example.lwmexam.entity.lwmexam.lwmExamPaper" %>
 <%
@@ -49,13 +50,7 @@
                 <% } } %>
             </select>
             <label style="font-weight:500;color:#475569;font-size:0.9rem;">试卷：</label>
-            <select name="papername" style="padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.9rem;">
-                <option value="">-- 全部试卷 --</option>
-                <% if (paperList != null) {
-                    for (String pn : paperList) { %>
-                        <option value="<%= pn %>" <%= pn.equals(selectedPaper) ? "selected" : "" %>><%= pn %></option>
-                <% } } %>
-            </select>
+            <input type="text" name="papername" placeholder="输入试卷名称模糊搜索" value="<%= selectedPaper != null ? selectedPaper : "" %>" style="padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.9rem;width:200px;">
             <label style="font-weight:500;color:#475569;font-size:0.9rem;">科目：</label>
             <select name="subjectid" style="padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.9rem;">
                 <option value="">-- 全部科目 --</option>
@@ -89,6 +84,7 @@
                             <% String cls = p.getLwmclassname();
                                boolean published = cls != null && !cls.isEmpty(); %>
                             <a href="lwmPublishPaper?id=<%= p.getLwmpaperid() %>" class="btn-edit" style="background:<%= published ? "#f59e0b" : "#059669" %>;"><%= published ? "修改发布" : "发布" %></a>
+                            <a href="lwmViewPaper?id=<%= p.getLwmpaperid() %>" class="btn-edit" style="background:#8b5cf6;">浏览</a>
                             <a href="lwmUpdatePaper?id=<%= p.getLwmpaperid() %>" class="btn-edit">编辑</a>
                             <a href="lwmDeletePaper?id=<%= p.getLwmpaperid() %>" class="btn-danger" onclick="return confirm('确定删除该试卷？')">删除</a>
                         </td>
@@ -99,6 +95,7 @@
             <% } %>
         </tbody>
     </table>
+    <jsp:include page="lwmfoot.jsp"></jsp:include>
 </div>
 </body>
 </html>

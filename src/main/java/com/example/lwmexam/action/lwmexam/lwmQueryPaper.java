@@ -3,6 +3,8 @@ package com.example.lwmexam.action.lwmexam;
 import com.example.lwmexam.dao.lwmexam.lwmpaperDAO;
 import com.example.lwmexam.entity.lwmexam.lwmExamPaper;
 import com.example.lwmexam.entity.lwmexam.lwmTeacher;
+import com.example.lwmexam.service.lwmexam.Fpage;
+import java.net.URLEncoder;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -73,8 +75,32 @@ public class lwmQueryPaper extends HttpServlet {
         } catch (Exception e) { e.printStackTrace(); }
 
         lwmpaperDAO dao = new lwmpaperDAO();
-        List<lwmExamPaper> papers = dao.lwmQueryByTeacherWithFilters(
-            teacher.getLwmteacherid(), selectedClass, selectedPaper, selectedSubjectId);
+
+        // Pagination
+        Fpage fp = new Fpage();
+        fp.setPageSize(6);
+        if (request.getParameter("page") != null) {
+            fp.setPageNow(Integer.parseInt(request.getParameter("page")));
+        }
+        String sc = (selectedClass != null && !selectedClass.isEmpty()) ? selectedClass : null;
+        String sp = (selectedPaper != null && !selectedPaper.isEmpty()) ? selectedPaper : null;
+        int total = dao.lwmCountByTeacherFilters(teacher.getLwmteacherid(), sc, sp, selectedSubjectId);
+        fp.setRowCount(total);
+
+        List<lwmExamPaper> papers = dao.lwmQueryByTeacherFiltersPaged(
+            teacher.getLwmteacherid(), sc, sp, selectedSubjectId, fp.getStart(), fp.getPageSize());
+
+        // Build tj string for pagination links
+        StringBuilder tj = new StringBuilder();
+        if (sc != null) tj.append("classname=").append(URLEncoder.encode(sc, "UTF-8"));
+        if (sp != null) {
+            if (tj.length() > 0) tj.append("&");
+            tj.append("papername=").append(URLEncoder.encode(sp, "UTF-8"));
+        }
+        if (selectedSubjectId != null) {
+            if (tj.length() > 0) tj.append("&");
+            tj.append("subjectid=").append(selectedSubjectId);
+        }
 
         request.setAttribute("papers", papers);
         request.setAttribute("classList", classList);
@@ -83,6 +109,9 @@ public class lwmQueryPaper extends HttpServlet {
         request.setAttribute("selectedClass", selectedClass != null ? selectedClass : "");
         request.setAttribute("selectedPaper", selectedPaper != null ? selectedPaper : "");
         request.setAttribute("selectedSubjectId", selectedSubjectId != null ? String.valueOf(selectedSubjectId) : "");
+        request.setAttribute("fp", fp);
+        request.setAttribute("pageUrl", "lwmQueryPaper");
+        request.setAttribute("tj", tj.toString());
         request.getRequestDispatcher("lwmteacher_paper_list.jsp").forward(request, response);
     }
 }

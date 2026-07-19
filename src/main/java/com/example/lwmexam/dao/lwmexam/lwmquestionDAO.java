@@ -106,6 +106,45 @@ public class lwmquestionDAO {
             new Object[]{subjectId, questiontype, count});
     }
 
+    // 检查是否存在一模一样的试题（添加时使用）
+    public boolean lwmExistQuestion(lwmExamQuestion q) {
+        return lwmExistQuestion(q, 0);
+    }
+
+    // 检查是否存在一模一样的试题，排除指定ID（修改时使用）
+    public boolean lwmExistQuestion(lwmExamQuestion q, int excludeId) {
+        boolean exists = false;
+        try {
+            String sql = "SELECT COUNT(*) FROM lwmexamquestion WHERE lwmsubjectid=? AND lwmquestiontype=? AND lwmquestioncontent=? AND lwmoptiona=? AND lwmoptionb=? AND lwmoptionc=? AND lwmoptiond=? AND lwmcorrectanswer=? AND lwmquestionid!=?";
+            rs = db.doQuery(sql, new Object[]{q.getLwmsubjectid(), q.getLwmquestiontype(), q.getLwmquestioncontent(),
+                    q.getLwmoptiona(), q.getLwmoptionb(), q.getLwmoptionc(), q.getLwmoptiond(), q.getLwmcorrectanswer(), excludeId});
+            if (rs.next()) {
+                exists = rs.getInt(1) > 0;
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        db.close();
+        return exists;
+    }
+
+    // 检查是否存在题目内容相同且题型相同的试题（添加时使用）
+    public boolean lwmExistQuestionByContent(lwmExamQuestion q) {
+        return lwmExistQuestionByContent(q, 0);
+    }
+
+    // 检查是否存在题目内容相同且题型相同的试题，排除指定ID（修改时使用）
+    public boolean lwmExistQuestionByContent(lwmExamQuestion q, int excludeId) {
+        boolean exists = false;
+        try {
+            String sql = "SELECT COUNT(*) FROM lwmexamquestion WHERE lwmsubjectid=? AND lwmquestiontype=? AND lwmquestioncontent=? AND lwmquestionid!=?";
+            rs = db.doQuery(sql, new Object[]{q.getLwmsubjectid(), q.getLwmquestiontype(), q.getLwmquestioncontent(), excludeId});
+            if (rs.next()) {
+                exists = rs.getInt(1) > 0;
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        db.close();
+        return exists;
+    }
+
     // Count questions by subject and type.
     public int lwmCountByType(int subjectId, String questiontype) {
         int count = 0;
@@ -117,5 +156,51 @@ public class lwmquestionDAO {
         } catch (Exception e) { e.printStackTrace(); }
         db.close();
         return count;
+    }
+
+    public int lwmCountByFilters(String subjectIds, String questiontype, String keyword) {
+        int count = 0;
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM lwmexamquestion q WHERE 1=1 ");
+        List<Object> params = new ArrayList<>();
+        if (subjectIds != null && !subjectIds.isEmpty()) {
+            sql.append("AND q.lwmsubjectid IN (").append(subjectIds).append(") ");
+        }
+        if (questiontype != null && !questiontype.isEmpty()) {
+            sql.append("AND q.lwmquestiontype = ? ");
+            params.add(questiontype);
+        }
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append("AND q.lwmquestioncontent LIKE ? ");
+            params.add("%" + keyword.trim() + "%");
+        }
+        try {
+            rs = db.doQuery(sql.toString(), params.toArray());
+            if (rs.next()) count = rs.getInt(1);
+        } catch (Exception e) { e.printStackTrace(); }
+        db.close();
+        return count;
+    }
+
+    public List<lwmExamQuestion> lwmQueryBySubjectTypePaged(
+            String subjectIds, String questiontype, String keyword, int start, int pageSize) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT q.*, s.lwmsubjectname FROM lwmexamquestion q " +
+            "LEFT JOIN lwmexamsubject s ON q.lwmsubjectid = s.lwmsubjectid WHERE 1=1 ");
+        List<Object> params = new ArrayList<>();
+        if (subjectIds != null && !subjectIds.isEmpty()) {
+            sql.append("AND q.lwmsubjectid IN (").append(subjectIds).append(") ");
+        }
+        if (questiontype != null && !questiontype.isEmpty()) {
+            sql.append("AND q.lwmquestiontype = ? ");
+            params.add(questiontype);
+        }
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append("AND q.lwmquestioncontent LIKE ? ");
+            params.add("%" + keyword.trim() + "%");
+        }
+        sql.append("ORDER BY q.lwmquestionid DESC LIMIT ?,?");
+        params.add(start);
+        params.add(pageSize);
+        return lwmQuerySomeQuestion(sql.toString(), params.toArray());
     }
 }

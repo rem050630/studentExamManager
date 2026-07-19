@@ -120,6 +120,28 @@ public class lwmCourseArrangeDAO {
         }
         return list;
     }
+    // 检查同一班级同一课程同一学期是否已排课（添加时使用）
+    public boolean lwmExistArrange(String lwmclassname, int lwmsubjectid, String lwmsemester) {
+        return lwmExistArrange(lwmclassname, lwmsubjectid, lwmsemester, 0);
+    }
+
+    // 检查同一班级同一课程同一学期是否已排课，排除指定ID（修改时使用）
+    public boolean lwmExistArrange(String lwmclassname, int lwmsubjectid, String lwmsemester, int excludeId) {
+        boolean exists = false;
+        try {
+            String sql = "SELECT COUNT(*) FROM lwmstudentcourseteacher WHERE lwmclassname=? AND lwmsubjectid=? AND lwmsemester=? AND lwmsctid!=?";
+            rs = db.doQuery(sql, new Object[]{lwmclassname, lwmsubjectid, lwmsemester, excludeId});
+            if (rs.next()) {
+                exists = rs.getInt(1) > 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            db.close();
+        }
+        return exists;
+    }
+
     public int getstudentcourseteacherCount() {
         int count = 0;
         try {

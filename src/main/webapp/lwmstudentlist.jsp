@@ -312,7 +312,7 @@
                             <button type="submit" class="import-submit-btn">导入数据</button>
                         </form>
                         <form action="lwmquerystudent" method="post" class="search-form">
-                            <input type="text" name="keyword" class="search-input" placeholder="输入学号/姓名/年级/专业/班级查询" required>
+                            <input type="text" name="keyword" class="search-input" placeholder="输入学号/姓名/年级/专业/班级查询">
                             <button type="submit" class="search-btn">
                                 <i class="fas fa-search"></i> 查询
                             </button>

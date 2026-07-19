@@ -45,9 +45,16 @@ public class lwmUpdatecourse extends HttpServlet {
 
         // 修改
         lwmCourseArrangeDAO dao = new lwmCourseArrangeDAO();
+        PrintWriter out = response.getWriter();
+
+        // 检查同一班级同一课程同一学期是否已排课（排除当前记录）
+        if (dao.lwmExistArrange(lwmclassname, lwmsubjectid, lwmsemester, lwmsctid)) {
+            out.println("<script>alert('该班级本课程在当前学期已安排教师，请重新选择');history.back();</script>");
+            return;
+        }
+
         int res = dao.lwmUpdateSct(sct);
 
-        PrintWriter out = response.getWriter();
         if(res>0){
             out.println("<script>alert('修改成功');location.href='lwmcourse_xx';</script>");
         }else{

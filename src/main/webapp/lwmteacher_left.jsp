@@ -32,24 +32,28 @@
 <body>
 <div class="sidebar">
     <div class="menu-item active">
-        <i class="fas fa-tachometer-alt"></i>
+        <i class="fas fa-home"></i>
         <a href="lwmteacher_index.jsp" target="rightFrame">主页</a>
     </div>
     <div class="menu-item">
-        <i class="fas fa-calendar-alt"></i>
+        <i class="fas fa-calendar-check"></i>
         <a href="lwmQueryTeacherCourses" target="rightFrame">我的排课</a>
     </div>
     <div class="menu-item">
-        <i class="fas fa-database"></i>
+        <i class="fas fa-book-open"></i>
         <a href="lwmQueryQuestion" target="rightFrame">题库管理</a>
     </div>
     <div class="menu-item">
-        <i class="fas fa-file-alt"></i>
+        <i class="fas fa-file-pdf"></i>
         <a href="lwmQueryPaper" target="rightFrame">试卷管理</a>
     </div>
     <div class="menu-item">
-        <i class="fas fa-search"></i>
+        <i class="fas fa-clipboard-list"></i>
         <a href="lwmQueryExamRecords" target="rightFrame">考试情况</a>
+    </div>
+    <div class="menu-item">
+        <i class="fas fa-chart-bar"></i>
+        <a href="lwmScoreAnalysis" target="rightFrame">成绩分析</a>
     </div>
 </div>
 
@@ -90,7 +94,7 @@
                 if (href === currentFile || (currentFile === 'lwmteacher_index.jsp' && href === 'lwmteacher_index.jsp')) {
                     menuItems.forEach(menu => menu.classList.remove('active'));
                     item.classList.add('active');
-                }
+                 }
             }
         });
     });

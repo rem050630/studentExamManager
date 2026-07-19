@@ -78,18 +78,7 @@
     </style>
 </head>
 <body>
-<div class="top-bar">
-    <div class="logo"><i class="fas fa-user-graduate"></i> 高校在线考试系统</div>
-    <div class="user-info">
-        <span><%= student.getLwmstudentname() %> (<%= student.getLwmstudentno() %>)</span>
-        <a href="SystemExit">退出</a>
-    </div>
-</div>
 <div class="main-layout">
-    <div class="sidebar">
-        <a href="lwmstudent_main.jsp"><i class="fas fa-home"></i> 学习中心</a>
-        <a href="lwmMistakeBook" class="active"><i class="fas fa-book"></i> 我的错题本</a>
-    </div>
     <div class="content-area">
         <div class="tab-nav">
             <button class="active" onclick="switchTab('mistakeList')">错题列表</button>

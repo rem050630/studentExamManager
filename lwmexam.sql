@@ -59,14 +59,27 @@ CREATE TABLE `lwmexampaper` (
   `lwmjdnum` int DEFAULT '0' COMMENT '简答题数量',
   `lwmjdscore` int DEFAULT '0' COMMENT '简答题分值',
   `lwmjdnos` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '简答题题号',
-  `lwmclassname` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '班级',
+  `lwmclassname` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '班级',
   `lwmexamsore` int NOT NULL COMMENT '总分',
   PRIMARY KEY (`lwmpaperid`),
   KEY `lwmsubjectid` (`lwmsubjectid`),
   CONSTRAINT `lwmexampaper_ibfk_1` FOREIGN KEY (`lwmsubjectid`) REFERENCES `lwmexamsubject` (`lwmsubjectid`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='试卷信息表';
+) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='试卷信息表';
 
 /*Data for the table `lwmexampaper` */
+
+insert  into `lwmexampaper`(`lwmpaperid`,`lwmpapername`,`lwmsubjectid`,`lwmexamtime`,`lwmstarttime`,`lwmendtime`,`lwmteacherid`,`lwmdanxnum`,`lwmdanxscore`,`lwmdanxnos`,`lwmduoxnum`,`lwmduoxscore`,`lwmduoxnos`,`lwmpdnum`,`lwmpdscore`,`lwmpdnos`,`lwmjdnum`,`lwmjdscore`,`lwmjdnos`,`lwmclassname`,`lwmexamsore`) values 
+(36,'2025',4,1,'2026-05-21 09:11:00','2026-05-31 09:11:00',1,1,2,'1',1,2,'2',1,1,'3',1,5,'4','计算机科学与技术1班',10),
+(37,'2023',4,120,'2026-05-17 09:31:00','2026-05-29 09:31:00',1,1,2,'1',1,2,'2',1,1,'3',1,5,'4','计算机科学与技术1班',10),
+(38,'2025',1,120,'2026-05-25 09:59:00','2026-05-25 10:54:00',1,5,2,'1,2,3,5,8',1,2,'4',1,1,'7',1,5,'6','大数据1班,计算机科学与技术1班,计算机科学与技术2班',18),
+(39,'2026',4,120,'2026-05-14 10:55:00','2026-05-29 10:55:00',1,1,2,'1',0,2,'',0,1,'',1,5,'2','计算机科学与技术1班',7),
+(40,'77',4,120,'2026-05-10 11:15:00','2026-05-30 11:15:00',1,1,2,'1',1,2,'2',1,1,'3',1,5,'4','计算机科学与技术1班',10),
+(41,'321',4,120,'2026-05-20 11:26:00','2026-05-28 11:26:00',1,2,2,'1,2',1,2,'3',1,1,'4',1,5,'5','计算机科学与技术1班',12),
+(42,'547',4,120,'2026-05-30 00:28:00','2026-06-17 00:28:00',1,1,3,'1',1,2,'2',1,1,'3',1,5,'4','大数据1班,计算机科学与技术1班',11),
+(43,'4352',4,120,'2026-06-01 09:49:00','2026-06-24 09:49:00',1,1,2,'1',1,2,'2',0,1,'',0,5,'','计算机科学与技术1班',4),
+(45,'2421',1,120,'2026-06-01 10:07:00','2026-06-20 10:08:00',1,1,5,'1',1,3,'2',1,2,'3',1,4,'4','计算机科学与技术1班',14),
+(46,'4322',1,120,'2026-06-01 10:12:00','2026-06-20 10:12:00',1,2,4,'2,3',1,1,'1',0,1,'',0,5,'','计算机科学与技术1班',9),
+(47,'432211',4,120,'2026-06-06 09:02:00','2026-06-25 09:02:00',1,1,2,'1',1,2,'2',0,1,'',0,5,'','',4);
 
 /*Table structure for table `lwmexamquestion` */
 
@@ -85,9 +98,25 @@ CREATE TABLE `lwmexamquestion` (
   PRIMARY KEY (`lwmquestionid`),
   KEY `lwmsubjectid` (`lwmsubjectid`),
   CONSTRAINT `lwmexamquestion_ibfk_1` FOREIGN KEY (`lwmsubjectid`) REFERENCES `lwmexamsubject` (`lwmsubjectid`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='试题信息表';
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='试题信息表';
 
 /*Data for the table `lwmexamquestion` */
+
+insert  into `lwmexamquestion`(`lwmquestionid`,`lwmsubjectid`,`lwmquestiontype`,`lwmquestioncontent`,`lwmoptiona`,`lwmoptionb`,`lwmoptionc`,`lwmoptiond`,`lwmcorrectanswer`) values 
+(1,1,'单选题','123','1','13','122','2','A'),
+(3,1,'判断题','11111','','','','','对'),
+(5,1,'简答题','3333','','','','','无所谓'),
+(7,5,'单选题','11','1','13','122','2','A'),
+(15,1,'单选题','232','啊','吧','从','的','A'),
+(16,1,'多选题','2005','啊','吧','从','的','A,C'),
+(24,1,'单选题','11','11111','232','123','123','C'),
+(25,1,'单选题','2312','1','11','23','2','A'),
+(26,1,'单选题','2313','1','2','3','4','A'),
+(27,4,'单选题','1+1=','1','2','3','4','B'),
+(28,4,'单选题','2+1=','1','2','3','4','C'),
+(29,4,'多选题','a+b=2，a=?,b=?','a=1,b=1','a=0.5,b=1.5','a=1,b=2','a=2,b=1','A,B'),
+(30,4,'判断题','1+1=0','','','','','错'),
+(31,4,'简答题','为什么1+1=2','','','','','不知道');
 
 /*Table structure for table `lwmexamrecord` */
 
@@ -105,9 +134,18 @@ CREATE TABLE `lwmexamrecord` (
   KEY `lwmstudentid` (`lwmstudentid`),
   CONSTRAINT `lwmexamrecord_ibfk_1` FOREIGN KEY (`lwmpaperid`) REFERENCES `lwmexampaper` (`lwmpaperid`) ON DELETE CASCADE,
   CONSTRAINT `lwmexamrecord_ibfk_2` FOREIGN KEY (`lwmstudentid`) REFERENCES `lwmstudent` (`lwmstudentid`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='学生考试记录表';
+) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='学生考试记录表';
 
 /*Data for the table `lwmexamrecord` */
+
+insert  into `lwmexamrecord`(`lwmrecordid`,`lwmpaperid`,`lwmstudentid`,`lwmstarttime`,`lwmendtime`,`lwmsubmitstatus`) values 
+(28,36,20,'2026-05-25 01:11:55','2026-05-25 09:12:57',1),
+(31,39,20,'2026-05-25 02:56:09','2026-05-25 10:56:19',2),
+(33,40,20,'2026-05-25 03:23:20','2026-05-25 11:23:33',2),
+(42,43,20,'2026-06-01 01:54:35','2026-06-01 01:54:35',0),
+(43,45,20,'2026-06-01 02:08:36','2026-06-01 10:08:42',2),
+(44,46,20,'2026-06-08 00:45:01','2026-06-08 09:13:26',1),
+(45,42,20,'2026-06-08 01:29:11','2026-06-08 01:29:11',0);
 
 /*Table structure for table `lwmexamscore` */
 
@@ -126,9 +164,15 @@ CREATE TABLE `lwmexamscore` (
   KEY `lwmteacherid` (`lwmteacherid`),
   CONSTRAINT `lwmexamscore_ibfk_1` FOREIGN KEY (`lwmrecordid`) REFERENCES `lwmexamrecord` (`lwmrecordid`) ON DELETE CASCADE,
   CONSTRAINT `lwmexamscore_ibfk_2` FOREIGN KEY (`lwmteacherid`) REFERENCES `lwmteacher` (`lwmteacherid`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='学生成绩表';
+) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='学生成绩表';
 
 /*Data for the table `lwmexamscore` */
+
+insert  into `lwmexamscore`(`lwmscoreid`,`lwmrecordid`,`lwmtotalscore`,`lwmteacherid`,`lwmscoretime`,`lwmstudentid`,`lwmpaperid`) values 
+(28,31,7,1,'2026-05-25 11:07:58',20,39),
+(46,33,9,1,'2026-05-25 11:23:48',20,40),
+(52,43,13,1,'2026-06-01 10:09:05',20,45),
+(54,44,4,1,'2026-06-08 09:13:55',20,46);
 
 /*Table structure for table `lwmexamsubject` */
 
@@ -152,6 +196,44 @@ insert  into `lwmexamsubject`(`lwmsubjectid`,`lwmsubjectname`,`lwmsubjectdesc`,`
 (5,'单片机','G003',4,'2023-2024第二学期'),
 (6,'数据库原理','G004',4,'2022-2023第一学期');
 
+/*Table structure for table `lwmknowledgepoint` */
+
+DROP TABLE IF EXISTS `lwmknowledgepoint`;
+
+CREATE TABLE `lwmknowledgepoint` (
+  `lwmkpid` int NOT NULL AUTO_INCREMENT COMMENT '知识点ID',
+  `lwmsubjectid` int NOT NULL COMMENT '所属科目ID',
+  `lwmkpname` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '知识点名称（如"定积分"）',
+  `lwmkpdesc` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '知识点描述',
+  PRIMARY KEY (`lwmkpid`),
+  KEY `idx_subject` (`lwmsubjectid`),
+  CONSTRAINT `fk_kp_subject` FOREIGN KEY (`lwmsubjectid`) REFERENCES `lwmexamsubject` (`lwmsubjectid`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='知识点表';
+
+/*Data for the table `lwmknowledgepoint` */
+
+/*Table structure for table `lwmmistakebook` */
+
+DROP TABLE IF EXISTS `lwmmistakebook`;
+
+CREATE TABLE `lwmmistakebook` (
+  `lwmmid` int NOT NULL AUTO_INCREMENT COMMENT '记录ID',
+  `lwmstudentid` int NOT NULL COMMENT '学生ID',
+  `lwmquestionid` int NOT NULL COMMENT '试题ID',
+  `lwmiswrong` tinyint DEFAULT '1' COMMENT '1=做错 0=后续做对（动态更新）',
+  `lwmreviewstatus` tinyint DEFAULT '0' COMMENT '0=未复习 1=已复习 2=已掌握',
+  `lwmlastupdatetime` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
+  PRIMARY KEY (`lwmmid`),
+  UNIQUE KEY `uk_student_question` (`lwmstudentid`,`lwmquestionid`),
+  KEY `idx_student` (`lwmstudentid`),
+  KEY `idx_question` (`lwmquestionid`),
+  KEY `idx_status` (`lwmiswrong`,`lwmreviewstatus`),
+  CONSTRAINT `fk_mb_question` FOREIGN KEY (`lwmquestionid`) REFERENCES `lwmexamquestion` (`lwmquestionid`) ON DELETE CASCADE,
+  CONSTRAINT `fk_mb_student` FOREIGN KEY (`lwmstudentid`) REFERENCES `lwmstudent` (`lwmstudentid`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='错题本表';
+
+/*Data for the table `lwmmistakebook` */
+
 /*Table structure for table `lwmpaperquestion` */
 
 DROP TABLE IF EXISTS `lwmpaperquestion`;
@@ -165,9 +247,71 @@ CREATE TABLE `lwmpaperquestion` (
   KEY `lwmquestionid` (`lwmquestionid`),
   CONSTRAINT `lwmpaperquestion_ibfk_1` FOREIGN KEY (`lwmpaperid`) REFERENCES `lwmexampaper` (`lwmpaperid`) ON DELETE CASCADE,
   CONSTRAINT `lwmpaperquestion_ibfk_2` FOREIGN KEY (`lwmquestionid`) REFERENCES `lwmexamquestion` (`lwmquestionid`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='试卷试题关联表';
+) ENGINE=InnoDB AUTO_INCREMENT=267 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='试卷试题关联表';
 
 /*Data for the table `lwmpaperquestion` */
+
+insert  into `lwmpaperquestion`(`lwmid`,`lwmpaperid`,`lwmquestionid`) values 
+(207,36,28),
+(208,36,29),
+(209,36,30),
+(210,36,31),
+(211,37,28),
+(212,37,29),
+(213,37,30),
+(214,37,31),
+(222,38,1),
+(221,38,3),
+(220,38,5),
+(219,38,15),
+(218,38,16),
+(217,38,24),
+(216,38,25),
+(215,38,26),
+(223,39,27),
+(224,39,31),
+(225,40,28),
+(226,40,29),
+(227,40,30),
+(228,40,31),
+(229,41,27),
+(230,41,28),
+(231,41,29),
+(232,41,30),
+(233,41,31),
+(253,42,28),
+(254,42,29),
+(255,42,30),
+(256,42,31),
+(251,43,28),
+(252,43,29),
+(249,45,3),
+(250,45,5),
+(247,45,15),
+(248,45,16),
+(262,46,16),
+(263,46,24),
+(264,46,26),
+(265,47,28),
+(266,47,29);
+
+/*Table structure for table `lwmquestionknowledge` */
+
+DROP TABLE IF EXISTS `lwmquestionknowledge`;
+
+CREATE TABLE `lwmquestionknowledge` (
+  `lwmqkid` int NOT NULL AUTO_INCREMENT COMMENT '关联ID',
+  `lwmquestionid` int NOT NULL COMMENT '试题ID',
+  `lwmkpid` int NOT NULL COMMENT '知识点ID',
+  PRIMARY KEY (`lwmqkid`),
+  UNIQUE KEY `uk_question_kp` (`lwmquestionid`,`lwmkpid`),
+  KEY `idx_question` (`lwmquestionid`),
+  KEY `idx_kp` (`lwmkpid`),
+  CONSTRAINT `fk_qk_kp` FOREIGN KEY (`lwmkpid`) REFERENCES `lwmknowledgepoint` (`lwmkpid`) ON DELETE CASCADE,
+  CONSTRAINT `fk_qk_question` FOREIGN KEY (`lwmquestionid`) REFERENCES `lwmexamquestion` (`lwmquestionid`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='试题-知识点关联表';
+
+/*Data for the table `lwmquestionknowledge` */
 
 /*Table structure for table `lwmstudent` */
 
@@ -184,7 +328,7 @@ CREATE TABLE `lwmstudent` (
   `lwmclassname` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '班级',
   PRIMARY KEY (`lwmstudentid`),
   UNIQUE KEY `lwmstudentno` (`lwmstudentno`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='学生信息表';
+) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='学生信息表';
 
 /*Data for the table `lwmstudent` */
 
@@ -198,7 +342,8 @@ insert  into `lwmstudent`(`lwmstudentid`,`lwmstudentno`,`lwmstudentname`,`lwmstu
 (26,'20200321002','李四','333','男','2021级','网络工程','网络1班'),
 (27,'20230551001','zs','111','男','2023级','软件工程','计算机科学与技术1班'),
 (29,'20240551009','王五','123','男','2024级','人工智能','人工智能1班'),
-(30,'20240551010','九二','222','女','2024级','软件工程','软件工程1班');
+(30,'20240551010','九二','222','女','2024级','软件工程','软件工程1班'),
+(31,'20230551004','小美','111','女','2022级','计算机科学与技术','计算机科学与技术2班');
 
 /*Table structure for table `lwmstudentanswer` */
 
@@ -217,9 +362,32 @@ CREATE TABLE `lwmstudentanswer` (
   KEY `lwmquestionid` (`lwmquestionid`),
   CONSTRAINT `lwmstudentanswer_ibfk_1` FOREIGN KEY (`lwmrecordid`) REFERENCES `lwmexamrecord` (`lwmrecordid`) ON DELETE CASCADE,
   CONSTRAINT `lwmstudentanswer_ibfk_2` FOREIGN KEY (`lwmquestionid`) REFERENCES `lwmexamquestion` (`lwmquestionid`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='学生答题详情表';
+) ENGINE=InnoDB AUTO_INCREMENT=186 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='学生答题详情表';
 
 /*Data for the table `lwmstudentanswer` */
+
+insert  into `lwmstudentanswer`(`lwmanswerid`,`lwmrecordid`,`lwmquestionid`,`lwmstudentanswer`,`lwmquestionscore`,`lwmstudentid`,`lwmpaperid`) values 
+(114,28,28,'C',0,20,36),
+(115,28,29,'A,B',0,20,36),
+(116,28,30,'错',0,20,36),
+(117,28,31,'11',0,20,36),
+(136,31,27,'C',2,20,39),
+(137,31,31,'12',5,20,39),
+(142,33,28,'C',2,20,40),
+(143,33,29,'A,B',2,20,40),
+(144,33,30,'错',1,20,40),
+(145,33,31,'123',4,20,40),
+(171,43,15,'A',5,20,45),
+(172,43,16,'C',2,20,45),
+(173,43,3,'对',2,20,45),
+(174,43,5,'123',4,20,45),
+(175,44,24,'A',0,20,46),
+(176,44,26,'A',4,20,46),
+(177,44,16,'A',0,20,46),
+(182,45,28,'A',0,20,42),
+(183,45,29,'B',0,20,42),
+(184,45,30,'对',0,20,42),
+(185,45,31,'',0,20,42);
 
 /*Table structure for table `lwmstudentcourseteacher` */
 
@@ -237,16 +405,18 @@ CREATE TABLE `lwmstudentcourseteacher` (
   KEY `idx_teacherid` (`lwmteacherid`),
   CONSTRAINT `fk_sct_subject` FOREIGN KEY (`lwmsubjectid`) REFERENCES `lwmexamsubject` (`lwmsubjectid`) ON DELETE CASCADE,
   CONSTRAINT `fk_sct_teacher` FOREIGN KEY (`lwmteacherid`) REFERENCES `lwmteacher` (`lwmteacherid`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='学生选课-教师授课关联表';
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='学生选课-教师授课关联表';
 
 /*Data for the table `lwmstudentcourseteacher` */
 
 insert  into `lwmstudentcourseteacher`(`lwmsctid`,`lwmclassname`,`lwmsubjectid`,`lwmteacherid`,`lwmsemester`) values 
 (1,'大数据1班',1,1,'2023-2024第一学期'),
-(6,'网络1班',4,2,'2023-2024第二学期'),
-(9,'计算机科学与技术1班',1,5,'2021-2022第二学期'),
+(6,'大数据1班',1,2,'2023-2024第二学期'),
 (12,'计算机科学与技术1班',1,1,'2022-2023第二学期'),
-(13,'软件工程2班',6,2,'2021-2022第一学期');
+(13,'软件工程2班',6,2,'2021-2022第一学期'),
+(16,'计算机科学与技术2班',1,1,'2022-2023第一学期'),
+(19,'计算机科学与技术1班',5,2,'2021-2022第一学期'),
+(22,'计算机科学与技术1班',4,1,'2021-2022第一学期');
 
 /*Table structure for table `lwmteacher` */
 

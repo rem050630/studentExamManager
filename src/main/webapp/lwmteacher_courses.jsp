@@ -29,7 +29,6 @@
 <div class="container">
     <div class="header">
         <h2>我的排课</h2>
-        <a href="lwmteacher_score_analysis.jsp" style="padding:8px 20px;background:#059669;color:white;border-radius:8px;text-decoration:none;font-size:0.9rem;">成绩分析</a>
         <form class="search-box" method="get" action="lwmQueryTeacherCourses">
             <input type="text" name="keyword" placeholder="搜索班级或科目..." value="<%= request.getParameter("keyword") != null ? request.getParameter("keyword") : "" %>">
             <button type="submit">搜索</button>

@@ -112,7 +112,7 @@
                 <% } } %>
             </select>
             <label>试卷：</label>
-            <select name="paperid" id="paperSelect">
+            <select name="paperid" id="paperSelect" onchange="onPaperChange()">
                 <option value="">-- 请选择试卷 --</option>
                 <% if (paperList != null) {
                     for (String[] p : paperList) { %>
@@ -142,6 +142,7 @@
         <button class="tab-btn" onclick="switchTab('quality')">试题质量</button>
         <button class="tab-btn" onclick="switchTab('knowledge')">知识点分析</button>
         <button class="tab-btn" onclick="switchTab('compare')">班级对比</button>
+        <button class="tab-btn" onclick="switchTab('ai')">AI分析</button>
     </div>
 
     <!-- Tab 1: 成绩概览 -->
@@ -260,6 +261,13 @@
         </div>
     </div>
 
+    <!-- Tab 5: AI Analysis -->
+    <div class="tab-content" id="tab-ai">
+        <div id="aiLoading" style="text-align:center;padding:40px;color:#94a3b8;">AI正在分析中，请稍候...</div>
+        <div id="aiResult" style="display:none;padding:20px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;line-height:1.8;color:#334155;font-size:0.95rem;white-space:pre-wrap;"></div>
+        <div id="aiError" class="empty" style="display:none;">AI分析失败，请稍后重试</div>
+    </div>
+
     <% } else { %>
     <div style="background:white; padding:60px; border-radius:12px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,0.08);">
         <p style="color:#94a3b8; font-size:1.1rem;">请选择科目和试卷进行成绩分析</p>
@@ -276,13 +284,14 @@ function switchTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(function(tc) { tc.classList.remove('active'); });
     document.getElementById('tab-' + tabName).classList.add('active');
     var btns = document.querySelectorAll('.tab-btn');
-    var tabOrder = ['overview','quality','knowledge','compare'];
+    var tabOrder = ['overview','quality','knowledge','compare','ai'];
     for (var i = 0; i < tabOrder.length; i++) {
         if (tabOrder[i] === tabName) { btns[i].classList.add('active'); break; }
     }
 
     if (tabName === 'quality') loadQuestionQuality();
     if (tabName === 'knowledge') loadKnowledgeAnalysis();
+    if (tabName === 'ai') loadAIAnalysis();
 }
 function onSubjectChange() {
     var subId = document.getElementById('subjectSelect').value;
@@ -304,6 +313,51 @@ function onSubjectChange() {
         if (selOpt.style.display === 'none') {
             paperSel.selectedIndex = 0;
         }
+    }
+    onPaperChange();
+}
+
+function onPaperChange() {
+    var paperSel = document.getElementById('paperSelect');
+    var classSel = document.getElementById('classSelect');
+    var opts = classSel.options;
+
+    var paperClasses = [];
+    if (paperSel.selectedIndex > 0) {
+        var selOpt = paperSel.options[paperSel.selectedIndex];
+        var raw = selOpt.getAttribute('data-class');
+        if (raw) {
+            var parts = raw.split(',');
+            for (var i = 0; i < parts.length; i++) {
+                var t = parts[i].trim();
+                if (t) paperClasses.push(t);
+            }
+        }
+    }
+
+    if (paperClasses.length === 0) {
+        for (var i = 0; i < opts.length; i++) {
+            opts[i].style.display = '';
+        }
+        return;
+    }
+
+    var currentVisible = false;
+    for (var i = 0; i < opts.length; i++) {
+        if (opts[i].value === '') {
+            opts[i].style.display = '';
+            continue;
+        }
+        if (paperClasses.indexOf(opts[i].value) !== -1) {
+            opts[i].style.display = '';
+            if (opts[i].selected) currentVisible = true;
+        } else {
+            opts[i].style.display = 'none';
+        }
+    }
+
+    if (!currentVisible && classSel.selectedIndex > 0) {
+        classSel.selectedIndex = 0;
     }
 }
 
@@ -433,6 +487,42 @@ function loadKnowledgeAnalysis() {
         .catch(function() {
             document.getElementById('kpLoading').style.display = 'none';
             document.getElementById('kpEmpty').style.display = 'block';
+        });
+}
+
+var aiLoaded = false;
+function loadAIAnalysis() {
+    if (aiLoaded) return;
+    aiLoaded = true;
+    var paperId = '<%= selectedPaperId != null ? selectedPaperId : "" %>';
+    if (!paperId) {
+        document.getElementById('aiLoading').style.display = 'none';
+        document.getElementById('aiError').style.display = 'block';
+        document.getElementById('aiError').innerText = '请先选择试卷';
+        return;
+    }
+    document.getElementById('aiLoading').style.display = 'block';
+    document.getElementById('aiResult').style.display = 'none';
+    document.getElementById('aiError').style.display = 'none';
+
+    var url = 'lwmAIAnalysis?paperid=' + encodeURIComponent(paperId);
+    if (selectedClass) url += '&classname=' + encodeURIComponent(selectedClass);
+
+    fetch(url)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            document.getElementById('aiLoading').style.display = 'none';
+            if (data.error) {
+                document.getElementById('aiError').style.display = 'block';
+                document.getElementById('aiError').innerText = data.error;
+                return;
+            }
+            document.getElementById('aiResult').innerText = data.analysis;
+            document.getElementById('aiResult').style.display = 'block';
+        })
+        .catch(function() {
+            document.getElementById('aiLoading').style.display = 'none';
+            document.getElementById('aiError').style.display = 'block';
         });
 }
 </script>

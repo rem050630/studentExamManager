@@ -13,6 +13,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import com.example.lwmexam.service.lwmexam.Fpage;
+import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,17 +42,61 @@ public class lwmQueryQuestion extends HttpServlet {
             .distinct()
             .collect(Collectors.joining(","));
 
+        // Build unique subject list for dropdown (id and name)
+        java.util.LinkedHashMap<String, String> subjectMap = new java.util.LinkedHashMap<>();
+        for (lwmstudentcourseteacher c : courses) {
+            subjectMap.putIfAbsent(String.valueOf(c.getLwmsubjectid()), c.getLwmsubjectname());
+        }
+        List<String[]> subjectList = new ArrayList<>();
+        for (java.util.Map.Entry<String, String> e : subjectMap.entrySet()) {
+            subjectList.add(new String[]{e.getKey(), e.getValue()});
+        }
+
         String questiontype = request.getParameter("questiontype");
         String keyword = request.getParameter("keyword");
+        String selectedSubjectId = request.getParameter("subjectid");
+
+        // If a specific subject is selected, use it; otherwise use all teacher's subjects
+        String filterSubjectIds = (selectedSubjectId != null && !selectedSubjectId.isEmpty())
+            ? selectedSubjectId : subjectIds;
 
         lwmquestionDAO dao = new lwmquestionDAO();
-        List<lwmExamQuestion> questions = dao.lwmQueryBySubjectType(
-            subjectIds.isEmpty() ? null : subjectIds, questiontype, keyword);
+
+        // Pagination
+        Fpage fp = new Fpage();
+        fp.setPageSize(6);
+        if (request.getParameter("page") != null) {
+            fp.setPageNow(Integer.parseInt(request.getParameter("page")));
+        }
+        String filterSubj = (filterSubjectIds != null && !filterSubjectIds.isEmpty()) ? filterSubjectIds : null;
+        int total = dao.lwmCountByFilters(filterSubj, questiontype, keyword);
+        fp.setRowCount(total);
+
+        List<lwmExamQuestion> questions = dao.lwmQueryBySubjectTypePaged(
+            filterSubj, questiontype, keyword, fp.getStart(), fp.getPageSize());
+
+        // Build tj string for pagination links
+        StringBuilder tj = new StringBuilder();
+        if (selectedSubjectId != null && !selectedSubjectId.isEmpty())
+            tj.append("subjectid=").append(selectedSubjectId);
+        if (questiontype != null && !questiontype.isEmpty()) {
+            if (tj.length() > 0) tj.append("&");
+            tj.append("questiontype=").append(questiontype);
+        }
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            if (tj.length() > 0) tj.append("&");
+            tj.append("keyword=").append(URLEncoder.encode(keyword, "UTF-8"));
+        }
 
         request.setAttribute("questions", questions);
         request.setAttribute("courses", courses);
+        request.setAttribute("subjectList", subjectList);
         request.setAttribute("questiontype", questiontype);
         request.setAttribute("keyword", keyword);
+        request.setAttribute("selectedSubjectId", selectedSubjectId != null ? selectedSubjectId : "");
+        request.setAttribute("fp", fp);
+        request.setAttribute("pageUrl", "lwmQueryQuestion");
+        request.setAttribute("tj", tj.toString());
         request.getRequestDispatcher("lwmteacher_question_list.jsp").forward(request, response);
     }
 }

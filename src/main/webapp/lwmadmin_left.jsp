@@ -319,14 +319,6 @@
             <i class="fas fa-calendar-alt" style="width: 24px;"></i>
             <a href="lwmcourse_xx" target="rightFrame" style="text-decoration: none; color: inherit;">排课信息</a>
         </div>
-        <div class="menu-item">
-            <i class="fas fa-file-alt" style="width: 24px;"></i>
-            <a href="#" target="rightFrame" style="text-decoration: none; color: inherit;">试卷信息</a>
-        </div>
-        <div class="menu-item">
-            <i class="fas fa-chart-line" style="width: 24px;"></i>
-            <a href="#" target="rightFrame" style="text-decoration: none; color: inherit;">成绩管理</a>
-        </div>
     </div>
 </div>
 <script>

@@ -178,7 +178,7 @@
             <button type="button" id="submitBtn" class="btn btn-submit" onclick="submitExam()">交卷</button>
         </div>
     </form>
-    </div><!-- .main-area -->
+    </div>
 </div>
 <script>
 var remainingSeconds = <%= remainingSeconds %>;

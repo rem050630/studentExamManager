@@ -3,6 +3,7 @@ package com.example.lwmexam.action.lwmexam;
 import com.example.lwmexam.dao.lwmexam.lwmCourseArrangeDAO;
 import com.example.lwmexam.entity.lwmexam.lwmTeacher;
 import com.example.lwmexam.entity.lwmexam.lwmstudentcourseteacher;
+import com.example.lwmexam.service.lwmexam.Fpage;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -28,28 +29,45 @@ public class lwmQueryTeacherCourses extends HttpServlet {
 
         lwmCourseArrangeDAO dao = new lwmCourseArrangeDAO();
         String keyword = request.getParameter("keyword");
-        String sql;
-        Object[] params;
+        String where;
+        Object[] countParams;
+        Object[] queryParams;
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             String likeKey = "%" + keyword.trim() + "%";
-            sql = "SELECT sct.*, sub.lwmsubjectname, tea.lwmteachername " +
-                  "FROM lwmstudentcourseteacher sct " +
-                  "LEFT JOIN lwmexamsubject sub ON sct.lwmsubjectid = sub.lwmsubjectid " +
-                  "LEFT JOIN lwmteacher tea ON sct.lwmteacherid = tea.lwmteacherid " +
-                  "WHERE sct.lwmteacherid = ? AND (sct.lwmclassname LIKE ? OR sub.lwmsubjectname LIKE ?)";
-            params = new Object[]{teacher.getLwmteacherid(), likeKey, likeKey};
+            where = " WHERE sct.lwmteacherid = ? AND (sct.lwmclassname LIKE ? OR sub.lwmsubjectname LIKE ?)";
+            countParams = new Object[]{teacher.getLwmteacherid(), likeKey, likeKey};
+            queryParams = new Object[]{teacher.getLwmteacherid(), likeKey, likeKey};
         } else {
-            sql = "SELECT sct.*, sub.lwmsubjectname, tea.lwmteachername " +
-                  "FROM lwmstudentcourseteacher sct " +
-                  "LEFT JOIN lwmexamsubject sub ON sct.lwmsubjectid = sub.lwmsubjectid " +
-                  "LEFT JOIN lwmteacher tea ON sct.lwmteacherid = tea.lwmteacherid " +
-                  "WHERE sct.lwmteacherid = ?";
-            params = new Object[]{teacher.getLwmteacherid()};
+            where = " WHERE sct.lwmteacherid = ?";
+            countParams = new Object[]{teacher.getLwmteacherid()};
+            queryParams = new Object[]{teacher.getLwmteacherid()};
         }
 
-        List<lwmstudentcourseteacher> courses = dao.lwmQuerySomeSct(sql, params);
+        // Pagination
+        Fpage fp = new Fpage();
+        fp.setPageSize(6);
+        if (request.getParameter("page") != null) {
+            fp.setPageNow(Integer.parseInt(request.getParameter("page")));
+        }
+        fp.setFpage("SELECT COUNT(*) FROM lwmstudentcourseteacher sct " +
+                     "LEFT JOIN lwmexamsubject sub ON sct.lwmsubjectid = sub.lwmsubjectid" + where, countParams);
+
+        String sql = "SELECT sct.*, sub.lwmsubjectname, tea.lwmteachername " +
+                     "FROM lwmstudentcourseteacher sct " +
+                     "LEFT JOIN lwmexamsubject sub ON sct.lwmsubjectid = sub.lwmsubjectid " +
+                     "LEFT JOIN lwmteacher tea ON sct.lwmteacherid = tea.lwmteacherid" + where +
+                     " LIMIT ?,?";
+        Object[] pagedParams = new Object[queryParams.length + 2];
+        System.arraycopy(queryParams, 0, pagedParams, 0, queryParams.length);
+        pagedParams[queryParams.length] = fp.getStart();
+        pagedParams[queryParams.length + 1] = fp.getPageSize();
+
+        List<lwmstudentcourseteacher> courses = dao.lwmQuerySomeSct(sql, pagedParams);
         request.setAttribute("courses", courses);
+        request.setAttribute("fp", fp);
+        request.setAttribute("pageUrl", "lwmQueryTeacherCourses");
+        request.setAttribute("tj", keyword != null && !keyword.trim().isEmpty() ? "keyword=" + java.net.URLEncoder.encode(keyword.trim(), "UTF-8") : "");
         request.getRequestDispatcher("lwmteacher_courses.jsp").forward(request, response);
     }
 }

@@ -50,6 +50,11 @@ public class Fpage {
 
     public void setRowCount(int rowCount) {
         this.rowCount = rowCount;
+        if (rowCount % pageSize == 0)
+            pageCount = rowCount / pageSize;
+        else
+            pageCount = rowCount / pageSize + 1;
+        start = pageNow * pageSize;
     }
 
     public void setFpage(String sql, Object[] param) {

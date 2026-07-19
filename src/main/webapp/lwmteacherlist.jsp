@@ -312,7 +312,7 @@
                             <button type="submit" class="import-submit-btn">导入数据</button>
                         </form>
                         <form action="lwmqueryteacher" method="post" class="search-form">
-                            <input type="text" name="keyword" class="search-input" placeholder="输入教师工号/姓名查询" required>
+                            <input type="text" name="keyword" class="search-input" placeholder="输入教师工号/姓名查询">
                             <button type="submit" class="search-btn">
                                 <i class="fas fa-search"></i> 查询
                             </button>
