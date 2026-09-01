@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.ResultSet;
 import java.util.Properties;
@@ -24,13 +26,41 @@ public class lwmAIAnalysisAction extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
+        // 从环境变量读取配置
+        apiKey = System.getenv("DEEPSEEK_API_KEY");
+        apiUrl = "https://api.deepseek.com/anthropic/v1/messages";
+
+        if (apiKey == null || apiKey.trim().isEmpty()) {
+            throw new ServletException("DEEPSEEK_API_KEY environment variable is not set or empty");
+        }
+
+        // 验证API URL格式
         try {
-            Properties props = new Properties();
-            props.load(getServletContext().getResourceAsStream("/WEB-INF/config.properties"));
-            apiKey = props.getProperty("deepseek.api.key", "");
-            apiUrl = props.getProperty("deepseek.api.url", "https://api.deepseek.com/v1/chat/completions");
+            validateUrl(apiUrl);
         } catch (Exception e) {
-            throw new ServletException("Failed to load config.properties", e);
+            throw new ServletException("Invalid API URL configuration: " + e.getMessage(), e);
+        }
+    }
+
+    private void validateUrl(String urlString) throws MalformedURLException, URISyntaxException {
+        if (urlString == null || urlString.trim().isEmpty()) {
+            throw new MalformedURLException("URL cannot be null or empty");
+        }
+
+        // 检查URL格式
+        URL url = new URL(urlString);
+        url.toURI(); // 检查URI格式
+
+        // 检查协议
+        String protocol = url.getProtocol();
+        if (!"http".equalsIgnoreCase(protocol) && !"https".equalsIgnoreCase(protocol)) {
+            throw new MalformedURLException("Only HTTP/HTTPS protocols are supported: " + protocol);
+        }
+
+        // 检查主机名
+        String host = url.getHost();
+        if (host == null || host.trim().isEmpty()) {
+            throw new MalformedURLException("Invalid host in URL: " + urlString);
         }
     }
 
